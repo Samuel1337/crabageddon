@@ -1,0 +1,3182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="Ocean Defender - Crab vs Trash">
+    <meta property="og:description" content="A fun vertical shooter game where a crab defends the ocean from falling trash!">
+    <meta property="og:image" content="assets/images/meta-image.png">
+    <meta property="og:type" content="website">
+    
+    <title>Crabageddon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 50%, #000080 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 50%, #000080 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #introScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 50%, #000080 100%);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #introBackground {
+            width: 800px;
+            height: 600px;
+            background-image: url('assets/images/background.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-start;
+            padding: 30px;
+        }
+
+        /* Mobile responsive styles */
+        @media (max-width: 850px) {
+            #introBackground {
+                border-radius: 0;
+            }
+            
+            #introTitle img {
+                max-width: 80%;
+                height: auto;
+            }
+            
+            #playBtn {
+                font-size: 20px;
+                padding: 12px 30px;
+            }
+            
+            #mobileNotice {
+                font-size: 1.5rem;
+                padding: 15px 30px;
+                margin-top: 20px;
+            }
+        }
+
+        #introTitle {
+            margin-bottom: 20px;
+        }
+
+        #introTitle img {
+            max-width: 400px;
+            height: auto;
+        }
+
+        #playBtn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #playBtn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        #playBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #loadingScreen h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        #loadingBar {
+            width: 400px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        #loadingProgress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #loadingText {
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 3px solid #006994;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 70%, #000080 100%);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 105, 148, 0.5);
+            display: none;
+        }
+
+        #gameTitle {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        #gameTitle img {
+            max-width: 400px;
+            height: auto;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: transparent;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        #pollutionBar {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 400px;
+            background: linear-gradient(to top, #32CD32 0%, #FFD700 50%, #FF4500 100%);
+            border: 3px solid #333;
+            border-radius: 15px;
+            z-index: 10;
+        }
+
+        #pollutionIndicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 400px;
+            z-index: 11;
+        }
+
+        #pollutionIndicator::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: var(--indicator-top, 50%);
+            width: 40px;
+            height: 4px;
+            background: #FF0000;
+            border-radius: 2px;
+            transition: top 0.3s ease;
+        }
+
+        #pollutionLabels {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        #pollutionLabels .acidity {
+            position: absolute;
+            top: -220px;
+            color: #FF4500;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 20;
+        }
+
+        #pauseScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 20;
+        }
+
+        #gameOver h2, #pauseScreen h2 {
+            margin-bottom: 10px;
+            color: #FF6B6B;
+        }
+
+        #restartBtn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #restartBtn:hover {
+            background: #45a049;
+        }
+
+        #resumeBtn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #resumeBtn:hover {
+            background: #45a049;
+        }
+
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.3) 70%, transparent 100%);
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .lives-container {
+            display: inline-flex !important;
+            gap: 5px;
+            align-items: center;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .lives-container img {
+            width: 20px;
+            height: 20px;
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingScreen">
+        <h1>Loading...</h1>
+        <div id="loadingBar">
+            <div id="loadingProgress"></div>
+        </div>
+        <p id="loadingText">0%</p>
+    </div>
+    
+    <div id="introScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+        <div id="introBackground">
+            <div id="introTitle">
+                <img src="assets/images/title.png" alt="Ocean Defender">
+            </div>
+            <button id="playBtn">Play</button>
+            <div id="mobileNotice" style="display:none; color: #fff; background: #222c; padding: 20px 40px; border-radius: 12px; font-size: 2rem; font-weight: bold; margin-top: 30px; text-align: center;">Available only on PC</div>
+        </div>
+    </div>
+    
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">5</span></div>
+        </div>
+        <div id="pollutionBar"></div>
+        <div id="pollutionIndicator"></div>
+        <div id="pollutionLabels">
+            <div class="acidity">Acidity</div>
+        </div>
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+        <div id="pauseScreen">
+            <h2>Game Paused</h2>
+            <button id="resumeBtn">Resume</button>
+        </div>
+        <div id="instructions">
+            Use A/D or ←/→ to move | SPACE to dash | ESC to pause
+        </div>
+    </div>
+
+    <div id="info" style="color: white; width: 800px; opacity: 0.5; transition: opacity 0.3s ease; cursor: default; padding-top: 10px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">
+        <p>Course: OCEN 100 - Summer 2025</p>
+        <p>Professor: Nidhi Patel</p>
+        <p>Student: Samuel Martins</p>
+    </div>
+    
+    <script>
+        class OceanDefender {
+            constructor() {
+                console.log('OceanDefender constructor called');
+                
+                // Get canvas with error handling
+                this.canvas = document.getElementById('gameCanvas');
+                if (!this.canvas) {
+                    console.error('Canvas element not found!');
+                    return;
+                }
+                
+                this.ctx = this.canvas.getContext('2d');
+                if (!this.ctx) {
+                    console.error('Could not get canvas context!');
+                    return;
+                }
+                
+                this.canvas.width = 800;
+                this.canvas.height = 600;
+                
+                // Game state
+                this.gameRunning = false;
+                this.score = 0;
+                this.lives = 5;
+                this.pollutionLevel = 0;
+                this.maxPollution = 100;
+                this.destroyed = false; // Flag to track if instance is destroyed
+                this.gameLoopStarted = false; // Flag to prevent multiple game loops
+                
+                // Input handling
+                this.keys = {};
+                
+                // Dialogue system
+                this.dialogue = {
+                    active: false,
+                    text: "",
+                    currentExpression: [0, 0],
+                    startTime: 0,
+                    canSkip: false,
+                    skipDelay: 1000 // 1 second before dialogue can be skipped
+                };
+                this.dialogueSequence = 0;
+                this.krillDialoguesComplete = false;
+                this.scientistDialoguesComplete = false;
+                this.commanderDialoguesComplete = false;
+                this.blueSquaresEnabled = false;
+                this.lowAcidityCelebrationTriggered = false; // Track first time acidity drops to 15% or lower
+                this.celebrationDelayTimer = null; // Timer for delayed celebration dialogue
+                this.highAcidityDialogueTriggered = false; // Track first time acidity reaches 75% or higher
+                this.highAcidityDelayTimer = null; // Timer for delayed high acidity dialogue
+                this.trashSpawnIncreaseTimer = null; // Timer for progressive trash spawn rate increases
+                this.unInterventionActive = false; // Track UN intervention state
+                this.unInterventionTimer = null; // Timer for UN intervention effects
+                
+                // Timer pause/resume system
+                this.pausedTimers = []; // Store paused timers
+                this.isPaused = false; // Track pause state
+                
+                // Victory and defeat conditions
+                this.unAnnouncementComplete = false; // Track if UN announcement is complete
+                this.victoryDefeatCheckTimer = null; // Timer to start checking for victory/defeat conditions
+                this.victoryDefeatDialogueActive = false; // Track if victory/defeat dialogue is active
+                this.victoryDefeatCheckingEnabled = false; // Flag to track if victory/defeat checking is enabled
+                this.victoryDefeatSequence = 0; // Track victory/defeat dialogue sequence
+                this.gameEnded = false; // Track if game has ended (victory or defeat)
+                
+                // Loading system
+                this.loadingProgress = 0;
+                this.totalAssets = 0;
+                this.loadedAssets = 0;
+                this.assetCategories = {
+                    sprites: { count: 0, loaded: 0 },
+                    textures: { count: 0, loaded: 0 },
+                    sounds: { count: 0, loaded: 0 }
+                };
+                
+                // Audio system
+                this.audio = {
+                    background: null,
+                    victory: null,
+                    defeat: null
+                };
+                
+                // Audio state management
+                this.audioInitialized = false;
+                this.audioContext = null;
+                this.audioLoaded = {
+                    background: false,
+                    victory: false,
+                    defeat: false
+                };
+                
+                // Sprite animation properties
+                this.animationSpeed = 8; // Frames per animation cycle
+                this.animationCounter = 0;
+                this.currentFrame = 0;
+                this.facingDirection = 1; // 1 for right, -1 for left
+                this.currentState = 'idle'; // idle, walking-right, walking-left, hit, dying
+                
+                // Sprite collections
+                this.sprites = {
+                    idle: [],
+                    walkingRight: [],
+                    walkingLeft: [],
+                    hit: [],
+                    dying: []
+                };
+                
+                // Loading state
+                this.allSpritesLoaded = false;
+                
+                // Krill sprite
+                this.krillSprite = null;
+                this.krillSpriteLoaded = false;
+                this.krillSpriteWidth = 0;
+                this.krillSpriteHeight = 0;
+                this.krillExpressions = {
+                    rows: 4,
+                    cols: 7,
+                    totalExpressions: 22
+                };
+                
+                // Scientist sprite
+                this.scientistSprite = null;
+                this.scientistSpriteLoaded = false;
+                
+                // Army Commander sprite
+                this.commanderSprite = null;
+                this.commanderSpriteLoaded = false;
+                
+                // United Nations sprite
+                this.unSprite = null;
+                this.unSpriteLoaded = false;
+                
+                // Background overlay image
+                this.backgroundOverlay = null;
+                this.backgroundOverlayLoaded = false;
+                
+                // Trash sprites
+                this.trashSprites = [];
+                this.trashSpritesLoaded = false;
+                
+                // Cleanup sprite
+                this.cleanupSprite = null;
+                this.cleanupSpriteLoaded = false;
+                
+                // First trash spawned flag
+                this.firstTrashSpawned = false;
+                
+                // Game progression tracking
+                this.blueSquaresEnabled = false;
+                this.lowAcidityCelebrationTriggered = false; // Track first time acidity drops to 15% or lower
+                
+                // Setup event listeners first
+                this.setupEventListeners();
+                
+                // Initialize lives display
+                this.updateLivesDisplay();
+                
+                // Show intro screen immediately, hide others
+                const introScreen = document.getElementById('introScreen');
+                const loadingScreen = document.getElementById('loadingScreen');
+                const gameContainer = document.getElementById('gameContainer');
+                
+                if (introScreen) introScreen.style.display = 'flex';
+                if (loadingScreen) loadingScreen.style.display = 'none';
+                if (gameContainer) gameContainer.style.display = 'none';
+                
+                console.log('OceanDefender constructor completed successfully');
+            }
+            
+            setupEventListeners() {
+                console.log('Setting up event listeners...');
+                
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.code] = true;
+                    
+                    // Handle game controls
+                    if (e.code === 'Escape') {
+                        e.preventDefault();
+                        // Only allow pause if dialogue is not active
+                        if (!this.dialogue.active) {
+                            this.togglePause();
+                        }
+                    }
+                    
+                    // Check for dash combinations (space + any movement key)
+                    if (e.code === 'Space' && (this.keys['ArrowLeft'] || this.keys['KeyA'])) {
+                        e.preventDefault();
+                        this.startDash(-1);
+                    } else if (e.code === 'Space' && (this.keys['ArrowRight'] || this.keys['KeyD'])) {
+                        e.preventDefault();
+                        this.startDash(1);
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.code] = false;
+                    
+                    // Stop dash if space is released
+                    if (e.code === 'Space') {
+                        this.stopDash();
+                    }
+                });
+                
+                const playBtn = document.getElementById('playBtn');
+                const restartBtn = document.getElementById('restartBtn');
+                const resumeBtn = document.getElementById('resumeBtn');
+                
+                if (playBtn) {
+                    playBtn.addEventListener('click', () => {
+                        this.startGame();
+                    });
+                } else {
+                    console.warn('Play button not found');
+                }
+                
+                if (restartBtn) {
+                    restartBtn.addEventListener('click', () => {
+                        this.restart();
+                    });
+                } else {
+                    console.warn('Restart button not found');
+                }
+                
+                if (resumeBtn) {
+                    resumeBtn.addEventListener('click', () => {
+                        this.resume();
+                    });
+                } else {
+                    console.warn('Resume button not found');
+                }
+                
+                console.log('Event listeners setup completed');
+            }
+            
+            startGame() {
+                console.log('startGame() called');
+                
+                // Hide intro screen and show loading screen
+                const introScreen = document.getElementById('introScreen');
+                const loadingScreen = document.getElementById('loadingScreen');
+                const gameContainer = document.getElementById('gameContainer');
+                
+                if (introScreen) introScreen.style.display = 'none';
+                if (loadingScreen) loadingScreen.style.display = 'flex';
+                if (gameContainer) gameContainer.style.display = 'none';
+                
+                console.log('Screens updated - starting sprite loading...');
+                
+                // Initialize game properties first
+                this.initializeGame();
+                
+                // Start the proper loading process
+                this.startLoading();
+                
+                console.log('startGame() completed - loading sprites...');
+            }
+            
+            initializeGame() {
+                console.log('Initializing game objects...');
+                
+                // Pollution system
+                this.pollutionLevel = 50; // 0 = Nice, 100 = Acid
+                this.maxPollution = 100;
+                
+                // Crab properties
+                this.crab = {
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height - 95,
+                    width: 100,
+                    height: 80,
+                    spriteWidth: 60, // Actual sprite hitbox width
+                    spriteHeight: 20, // Shorter sprite hitbox height
+                    speed: 5,
+                    color: '#FF6B35',
+                    isDashing: false,
+                    dashDirection: 0,
+                    dashTimer: 0,
+                    hitTimer: 0
+                };
+                
+                // Floor properties
+                this.floor = {
+                    y: this.canvas.height - 20,
+                    height: 20,
+                    color: '#F4D03F'
+                };
+                
+                // Arrays for game objects
+                this.bullets = [];
+                this.trash = [];
+                this.cleanupItems = [];
+                this.bubbles = [];
+                this.explosions = [];
+                this.dashTrails = [];
+                
+                // Game settings
+                this.bulletSpeed = 8;
+                this.trashSpeed = 2;
+                this.spawnRate = 0.02;
+                this.cleanupSpawnRate = 0.006;
+                this.bubbleSpawnRate = 0.01;
+                this.fireRate = 0.1; // Fire every 10 frames (adjust for desired rate)
+                this.fireCounter = 0;
+                this.dashSpeed = 15;
+                this.dashDuration = 10;
+                this.dashCooldown = 0;
+                this.spacePressed = false;
+                
+                // Initialize game elements
+                this.createBubbles();
+                this.updateBackground();
+                this.updatePollutionBar();
+                this.updateLivesDisplay();
+                
+                console.log('Game objects initialized successfully');
+            }
+            
+            shoot() {
+                if (!this.gameRunning) return;
+                
+                // Calculate sprite position for bullet spawn
+                const crabSpriteX = this.crab.x + (this.crab.width - this.crab.spriteWidth) / 2;
+                const crabSpriteY = this.crab.y + (this.crab.height - this.crab.spriteHeight) / 2;
+                
+                this.bullets.push({
+                    x: crabSpriteX + this.crab.spriteWidth / 2 - 2,
+                    y: crabSpriteY,
+                    width: 4,
+                    height: 10,
+                    color: '#FFD700'
+                });
+            }
+            
+            createBubbles() {
+                for (let i = 0; i < 20; i++) {
+                    this.bubbles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 10 + 5,
+                        speed: Math.random() * 1 + 0.5
+                    });
+                }
+            }
+            
+            spawnTrash() {
+                if (Math.random() < this.spawnRate) {
+                    const trashTypes = [
+                        { color: '#8B4513', width: 70, height: 45, points: 10, spriteIndex: 0, hitboxWidth: 25, hitboxHeight: 25 }, // Brown plastic - trash1.png
+                        { color: '#FFD700', width: 60, height: 60, points: 15, spriteIndex: 1, hitboxWidth: 25, hitboxHeight: 25 }, // Yellow can - trash2.png
+                        { color: '#FF69B4', width: 45, height: 70, points: 20, spriteIndex: 2, hitboxWidth: 25, hitboxHeight: 25 }, // Pink bottle - trash3.png
+                        { color: '#32CD32', width: 80, height: 40, points: 25, spriteIndex: 3, hitboxWidth: 25, hitboxHeight: 25 }  // Green bag - trash4.png
+                    ];
+                    
+                    const type = trashTypes[Math.floor(Math.random() * trashTypes.length)];
+                    
+                    // Add margins to keep items within reachable area
+                    const margin = 50; // 50 pixels margin on each side
+                    const minX = margin;
+                    const maxX = this.canvas.width - type.width - margin;
+                    
+                    this.trash.push({
+                        x: Math.random() * (maxX - minX) + minX,
+                        y: -type.height,
+                        width: type.width,
+                        height: type.height,
+                        hitboxWidth: type.hitboxWidth,
+                        hitboxHeight: type.hitboxHeight,
+                        color: type.color,
+                        points: type.points,
+                        spriteIndex: type.spriteIndex,
+                        destroyed: false // Initialize destroyed flag
+                    });
+                    
+                    // Trigger dialogue on first trash spawn
+                    if (!this.firstTrashSpawned) {
+                        this.firstTrashSpawned = true;
+                        console.log('First trash spawned! Triggering dialogue in 1 second...');
+                        // Delay dialogue by 1 second
+                        setTimeout(() => {
+                            this.dialogueSequence = 1;
+                            this.startDialogue("We need your help, Crabby! The humans are at it again.", [0, 0]);
+                        }, 1000);
+                    }
+                }
+            }
+            
+            spawnCleanupItem() {
+                if (!this.blueSquaresEnabled) return; // Only spawn when enabled
+                
+                if (Math.random() < this.cleanupSpawnRate) {
+                    // Add margins to keep items within reachable area
+                    const margin = 50; // 50 pixels margin on each side
+                    const minX = margin;
+                    const maxX = this.canvas.width - 60 - margin; // 60 is cleanup item width
+                    
+                    this.cleanupItems.push({
+                        x: Math.random() * (maxX - minX) + minX,
+                        y: -60,
+                        width: 60,
+                        height: 60,
+                        hitboxWidth: 25,
+                        hitboxHeight: 25,
+                        color: '#00CED1',
+                        points: 50,
+                        hasSprite: true,
+                        destroyed: false // Initialize destroyed flag
+                    });
+                }
+            }
+            
+            forceSpawnCleanupItem() {
+                // Force spawn a cleanup item regardless of spawn rate
+                const margin = 50; // 50 pixels margin on each side
+                const minX = margin;
+                const maxX = this.canvas.width - 60 - margin; // 60 is cleanup item width
+                
+                this.cleanupItems.push({
+                    x: Math.random() * (maxX - minX) + minX,
+                    y: -60,
+                    width: 60,
+                    height: 60,
+                    hitboxWidth: 25,
+                    hitboxHeight: 25,
+                    color: '#00CED1',
+                    points: 50,
+                    hasSprite: true,
+                    destroyed: false // Initialize destroyed flag
+                });
+                
+                console.log('Forced spawn of cleanup item after scientist dialogue completion');
+            }
+            
+            startProgressiveTrashIncreases() {
+                // Increase trash spawn rate every 20 seconds
+                this.trashSpawnIncreaseTimer = setInterval(() => {
+                    this.spawnRate += 0.01; // Increase by 0.01 every 20 seconds
+                    console.log(`Trash spawn rate increased to: ${this.spawnRate.toFixed(3)}`);
+                }, 20000);
+            }
+            
+            updatePollutionLevel(change) {
+                this.pollutionLevel = Math.max(0, Math.min(this.maxPollution, this.pollutionLevel + change));
+                console.log(`Acidity changed by ${change}. Current acidity: ${this.pollutionLevel}%`);
+                
+                // Check if acidity dropped to 15% or lower for the first time
+                if (this.pollutionLevel <= 15 && !this.lowAcidityCelebrationTriggered && this.blueSquaresEnabled) {
+                    this.lowAcidityCelebrationTriggered = true;
+                    console.log('Acidity dropped to 15% or lower! Scheduling Krill celebration in 3 seconds...');
+                    
+                    // Set a 3-second delay before triggering the celebration dialogue
+                    this.celebrationDelayTimer = setTimeout(() => {
+                        this.dialogueSequence = 11; // New sequence for celebration
+                        this.gameRunning = false;
+                        this.startDialogue("We're doing it! The limestone solution is restoring the balance in the ocean!", [0, 3]);
+                    }, 3000);
+                }
+                
+                // Check if acidity reached 90% or higher for the first time (after commander dialogue)
+                if (this.pollutionLevel >= 90 && !this.highAcidityDialogueTriggered && this.commanderDialoguesComplete) {
+                    this.highAcidityDialogueTriggered = true;
+                    console.log('Acidity reached 90% or higher! Triggering high acidity dialogue immediately...');
+                    
+                    // Trigger the high acidity dialogue immediately
+                    this.dialogueSequence = 16; // New sequence for high acidity dialogue
+                    this.gameRunning = false;
+                    this.startDialogue("We're all gonna die! We're all gonna die! We're all gonna die!", [2, 3]);
+                }
+                
+                this.updateBackground();
+                this.updatePollutionBar();
+            }
+            
+            updateBackground() {
+                const pollutionRatio = this.pollutionLevel / this.maxPollution;
+                
+                // Interpolate between blue tones (nice) and green tones (acid)
+                const blueR = Math.round(135 + (34 - 135) * pollutionRatio); // 87CEEB to 228F34
+                const blueG = Math.round(206 + (143 - 206) * pollutionRatio); // CEEB to 8F34
+                const blueB = Math.round(235 + (52 - 235) * pollutionRatio);  // EB to 34
+                
+                const midR = Math.round(30 + (0 - 30) * pollutionRatio);      // 1E90FF to 000000
+                const midG = Math.round(144 + (128 - 144) * pollutionRatio);  // 90FF to 008000
+                const midB = Math.round(255 + (0 - 255) * pollutionRatio);    // FF to 000000
+                
+                const deepR = Math.round(0 + (0 - 0) * pollutionRatio);       // 000080 to 006400
+                const deepG = Math.round(0 + (100 - 0) * pollutionRatio);     // 000080 to 006400
+                const deepB = Math.round(128 + (0 - 128) * pollutionRatio);   // 80 to 00
+                
+                const gameContainer = document.getElementById('gameContainer');
+                gameContainer.style.background = `linear-gradient(180deg, rgb(${blueR}, ${blueG}, ${blueB}) 0%, rgb(${midR}, ${midG}, ${midB}) 70%, rgb(${deepR}, ${deepG}, ${deepB}) 100%)`;
+            }
+            
+            updatePollutionBar() {
+                const indicator = document.getElementById('pollutionIndicator');
+                const pollutionRatio = this.pollutionLevel / this.maxPollution;
+                const topPosition = 100 - (pollutionRatio * 100); // 100% is bottom (nice), 0% is top (acid)
+                
+                // Set the CSS custom property for the ::after pseudo-element
+                indicator.style.setProperty('--indicator-top', `${topPosition}%`);
+            }
+            
+            update() {
+                // Stop updates if the game is not running
+                if (!this.gameRunning) {
+                    return;
+                }
+                
+                // Always update dialogue system, even when game is paused
+                this.updateDialogue();
+                
+                // Check victory/defeat conditions continuously after UN announcement is complete and timer expires
+                if (this.unAnnouncementComplete && !this.gameEnded && this.victoryDefeatCheckingEnabled) {
+                    this.checkVictoryDefeatConditions();
+                }
+                
+                // Update dash cooldown
+                if (this.dashCooldown > 0) {
+                    this.dashCooldown--;
+                }
+                
+                // Handle crab movement
+                if (this.crab.isDashing) {
+                    // Dash movement
+                    this.crab.x += this.crab.dashDirection * this.dashSpeed;
+                    this.crab.x = Math.max(0, Math.min(this.canvas.width - this.crab.width, this.crab.x));
+                    this.facingDirection = this.crab.dashDirection;
+                    
+                    // Update dash timer
+                    this.crab.dashTimer--;
+                    if (this.crab.dashTimer <= 0) {
+                        this.stopDash();
+                    }
+                    
+                    // Create dash trail
+                    this.createDashTrail();
+                } else {
+                    // Normal movement
+                    if (this.keys['KeyA'] || this.keys['ArrowLeft']) {
+                        this.crab.x = Math.max(0, this.crab.x - this.crab.speed);
+                        this.facingDirection = -1;
+                    }
+                    if (this.keys['KeyD'] || this.keys['ArrowRight']) {
+                        this.crab.x = Math.min(this.canvas.width - this.crab.width, this.crab.x + this.crab.speed);
+                        this.facingDirection = 1;
+                    }
+                }
+                
+                // Automatic firing
+                this.fireCounter++;
+                if (this.fireCounter >= 10) { // Fire every 10 frames
+                    this.shoot();
+                    this.fireCounter = 0;
+                }
+                
+                // Update bullets
+                this.bullets = this.bullets.filter(bullet => {
+                    bullet.y -= this.bulletSpeed;
+                    return bullet.y > 0;
+                });
+                
+                // Update trash
+                this.trash = this.trash.filter(item => {
+                    item.y += this.trashSpeed;
+                    
+                    // Initialize destroyed flag if not set
+                    if (item.destroyed === undefined) {
+                        item.destroyed = false;
+                    }
+                    
+                    // Skip collision checks if item is already being destroyed
+                    if (item.destroyed) {
+                        console.log('Skipping destroyed trash item');
+                        return false;
+                    }
+                    
+                    // Check collision with bullets
+                    for (let i = this.bullets.length - 1; i >= 0; i--) {
+                        const bullet = this.bullets[i];
+                        if (this.checkCollision(bullet, item)) {
+                            console.log('Trash hit by bullet - destroying');
+                            this.score += item.points;
+                            this.bullets.splice(i, 1);
+                            this.createExplosion(item.x + item.width/2, item.y + item.height/2);
+                            item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                            return false;
+                        }
+                    }
+                    
+                    // Check collision with crab
+                    if (this.checkCollision(this.crab, item)) {
+                        console.log('Trash hit crab - destroying');
+                        this.lives--;
+                        this.crab.hitTimer = 20; // Set hit timer for 20 frames
+                        this.createExplosion(item.x + item.width/2, item.y + item.height/2);
+                        item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                        return false;
+                    }
+                    
+                    // Check collision with floor
+                    if (item.y + item.height >= this.floor.y) {
+                        console.log('Trash hit floor - destroying and updating pollution');
+                        this.updatePollutionLevel(5); // Increase pollution when trash hits floor
+                        this.createExplosion(item.x + item.width/2, this.floor.y);
+                        item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                        return false;
+                    }
+                    
+                    return item.y < this.canvas.height;
+                });
+                
+                // Update cleanup items
+                this.cleanupItems = this.cleanupItems.filter(item => {
+                    item.y += this.trashSpeed;
+                    
+                    // Initialize destroyed flag if not set
+                    if (item.destroyed === undefined) {
+                        item.destroyed = false;
+                    }
+                    
+                    // Skip collision checks if item is already being destroyed
+                    if (item.destroyed) {
+                        console.log('Skipping destroyed cleanup item');
+                        return false;
+                    }
+                    
+                    // Check collision with bullets
+                    for (let i = this.bullets.length - 1; i >= 0; i--) {
+                        const bullet = this.bullets[i];
+                        if (this.checkCollision(bullet, item)) {
+                            console.log('Cleanup item hit by bullet - destroying');
+                            this.score += item.points;
+                            this.updatePollutionLevel(-10); // Decrease pollution when cleanup item is hit
+                            this.bullets.splice(i, 1);
+                            this.createExplosion(item.x + item.width/2, item.y + item.height/2, '#00CED1');
+                            item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                            return false;
+                        }
+                    }
+                    
+                    // Check collision with crab
+                    if (this.checkCollision(this.crab, item)) {
+                        console.log('Cleanup item hit crab - destroying');
+                        this.score += item.points;
+                        this.updatePollutionLevel(-10); // Decrease pollution when cleanup item is collected
+                        this.createExplosion(item.x + item.width/2, item.y + item.height/2, '#00CED1');
+                        item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                        return false;
+                    }
+                    
+                    // Check collision with floor
+                    if (item.y + item.height >= this.floor.y) {
+                        console.log('Cleanup item hit floor - destroying');
+                        this.createExplosion(item.x + item.width/2, this.floor.y, '#00CED1');
+                        item.destroyed = true; // Mark as destroyed to prevent multiple collisions
+                        return false;
+                    }
+                    
+                    return item.y < this.canvas.height;
+                });
+                
+                // Update bubbles
+                this.bubbles.forEach(bubble => {
+                    bubble.y -= bubble.speed;
+                    if (bubble.y < -bubble.size) {
+                        bubble.y = this.canvas.height + bubble.size;
+                        bubble.x = Math.random() * this.canvas.width;
+                    }
+                });
+                
+                // Update explosions
+                this.explosions = this.explosions.filter(explosion => {
+                    explosion.life--;
+                    explosion.size += 2;
+                    return explosion.life > 0;
+                });
+                
+                // Update dash trails
+                this.dashTrails = this.dashTrails.filter(trail => {
+                    trail.life--;
+                    trail.y += trail.speed;
+                    return trail.life > 0;
+                });
+                
+                // Spawn new items
+                this.spawnTrash();
+                this.spawnCleanupItem();
+                
+                // Update UI
+                document.getElementById('score').textContent = this.score + ' / 5000';
+                document.getElementById('lives').textContent = this.lives;
+                
+                // Check game over conditions
+                if (this.lives <= 0 || this.pollutionLevel >= this.maxPollution) {
+                    if (!this.gameEnded) { // Only check once
+                        if (this.unAnnouncementComplete) {
+                            // Use new victory/defeat system
+                            this.checkVictoryDefeatConditions();
+                        } else {
+                            // Use old game over system
+                            this.gameOver();
+                        }
+                    }
+                }
+            }
+            
+            checkCollision(rect1, rect2) {
+                // For crab collisions, use sprite hitbox
+                let crabWidth = this.crab.width;
+                let crabHeight = this.crab.height;
+                
+                if (rect1 === this.crab || rect2 === this.crab) {
+                    // Calculate sprite hitbox position (centered on crab object)
+                    const crabSpriteX = this.crab.x + (this.crab.width - this.crab.spriteWidth) / 2;
+                    const crabSpriteY = this.crab.y + (this.crab.height - this.crab.spriteHeight) / 2;
+                    
+                    if (rect1 === this.crab) {
+                        return crabSpriteX < rect2.x + rect2.width &&
+                               crabSpriteX + this.crab.spriteWidth > rect2.x &&
+                               crabSpriteY < rect2.y + rect2.height &&
+                               crabSpriteY + this.crab.spriteHeight > rect2.y;
+                    } else {
+                        return rect1.x < crabSpriteX + this.crab.spriteWidth &&
+                               rect1.x + rect1.width > crabSpriteX &&
+                               rect1.y < crabSpriteY + this.crab.spriteHeight &&
+                               rect1.y + rect1.height > rect2.y;
+                    }
+                }
+                
+                // For trash and cleanup items, use their hitbox dimensions if available
+                let rect1Width = rect1.hitboxWidth || rect1.width;
+                let rect1Height = rect1.hitboxHeight || rect1.height;
+                let rect2Width = rect2.hitboxWidth || rect2.width;
+                let rect2Height = rect2.hitboxHeight || rect2.height;
+                
+                // Calculate hitbox positions (centered on sprite)
+                let rect1HitboxX = rect1.x + (rect1.width - rect1Width) / 2;
+                let rect1HitboxY = rect1.y + (rect1.height - rect1Height) / 2;
+                let rect2HitboxX = rect2.x + (rect2.width - rect2Width) / 2;
+                let rect2HitboxY = rect2.y + (rect2.height - rect2Height) / 2;
+                
+                // Collision detection using hitboxes
+                return rect1HitboxX < rect2HitboxX + rect2Width &&
+                       rect1HitboxX + rect1Width > rect2HitboxX &&
+                       rect1HitboxY < rect2HitboxY + rect2Height &&
+                       rect1HitboxY + rect1Height > rect2HitboxY;
+            }
+            
+            createExplosion(x, y, color = '#FF4500') {
+                this.explosions.push({
+                    x: x,
+                    y: y,
+                    size: 5,
+                    life: 10,
+                    color: color
+                });
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw dynamic background based on pollution level
+                const pollutionRatio = this.pollutionLevel / this.maxPollution;
+                
+                // Interpolate between blue tones (nice) and green tones (acid)
+                const blueR = Math.round(135 + (34 - 135) * pollutionRatio); // 87CEEB to 228F34
+                const blueG = Math.round(206 + (143 - 206) * pollutionRatio); // CEEB to 8F34
+                const blueB = Math.round(235 + (52 - 235) * pollutionRatio);  // EB to 34
+                
+                const midR = Math.round(30 + (0 - 30) * pollutionRatio);      // 1E90FF to 000000
+                const midG = Math.round(144 + (128 - 144) * pollutionRatio);  // 90FF to 008000
+                const midB = Math.round(255 + (0 - 255) * pollutionRatio);    // FF to 000000
+                
+                const deepR = Math.round(0 + (0 - 0) * pollutionRatio);       // 000080 to 006400
+                const deepG = Math.round(0 + (100 - 0) * pollutionRatio);     // 000080 to 006400
+                const deepB = Math.round(128 + (0 - 128) * pollutionRatio);   // 80 to 00
+                
+                // Create gradient with dynamic colors
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, `rgb(${blueR}, ${blueG}, ${blueB})`);
+                gradient.addColorStop(0.5, `rgb(${midR}, ${midG}, ${midB})`);
+                gradient.addColorStop(1, `rgb(${deepR}, ${deepG}, ${deepB})`);
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background overlay on top of gradient
+                if (this.backgroundOverlayLoaded && this.backgroundOverlay) {
+                    // Calculate alpha based on acidity level
+                    // As acidity increases (closer to 100%), alpha decreases to 0.1
+                    // As acidity decreases (closer to 0%), alpha increases to 0.5
+                    const pollutionRatio = this.pollutionLevel / this.maxPollution;
+                    const alpha = 0.5 - (pollutionRatio * 0.4); // 0.5 to 0.1 range
+                    
+                    this.ctx.globalAlpha = alpha;
+                    this.ctx.drawImage(this.backgroundOverlay, 0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.globalAlpha = 1.0; // Reset alpha back to 1.0
+                }
+                
+                // Draw bubbles
+                this.bubbles.forEach(bubble => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(bubble.x, bubble.y, bubble.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                });
+                
+                // Draw dash trails
+                this.dashTrails.forEach(trail => {
+                    const alpha = trail.life / 15;
+                    this.ctx.beginPath();
+                    this.ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                });
+                
+                // Draw floor
+                this.ctx.fillStyle = this.floor.color;
+                this.ctx.fillRect(0, this.floor.y, this.canvas.width, this.floor.height);
+                
+                // Draw floor details (sand texture)
+                this.ctx.fillStyle = 'rgba(244, 208, 63, 0.7)';
+                for (let i = 0; i < this.canvas.width; i += 10) {
+                    this.ctx.fillRect(i, this.floor.y + 5, 5, 2);
+                }
+                
+                // Draw additional sand texture
+                this.ctx.fillStyle = 'rgba(210, 180, 140, 0.5)';
+                for (let i = 5; i < this.canvas.width; i += 15) {
+                    this.ctx.fillRect(i, this.floor.y + 10, 3, 3);
+                }
+                
+                // Draw crab
+                this.drawCrab();
+                
+                // Draw bullets
+                this.bullets.forEach(bullet => {
+                    this.ctx.fillStyle = bullet.color;
+                    this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                });
+                
+                // Draw trash
+                this.trash.forEach(item => {
+                    if (this.trashSprites.length > 0 && item.spriteIndex !== undefined && this.trashSprites[item.spriteIndex]) {
+                        // Draw sprite if available with aspect ratio preservation
+                        const sprite = this.trashSprites[item.spriteIndex];
+                        const spriteAspectRatio = sprite.width / sprite.height;
+                        const itemAspectRatio = item.width / item.height;
+                        
+                        let drawWidth, drawHeight, drawX, drawY;
+                        
+                        if (spriteAspectRatio > itemAspectRatio) {
+                            // Sprite is wider than item - fit to width
+                            drawWidth = item.width;
+                            drawHeight = item.width / spriteAspectRatio;
+                            drawX = item.x;
+                            drawY = item.y + (item.height - drawHeight) / 2; // Center vertically
+                        } else {
+                            // Sprite is taller than item - fit to height
+                            drawHeight = item.height;
+                            drawWidth = item.height * spriteAspectRatio;
+                            drawX = item.x + (item.width - drawWidth) / 2; // Center horizontally
+                            drawY = item.y;
+                        }
+                        
+                        this.ctx.drawImage(sprite, drawX, drawY, drawWidth, drawHeight);
+                    } else {
+                        // Fallback to colored rectangle
+                        this.ctx.fillStyle = item.color;
+                        this.ctx.fillRect(item.x, item.y, item.width, item.height);
+                        
+                        // Add some detail to trash
+                        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                        this.ctx.fillRect(item.x + 2, item.y + 2, item.width - 4, 2);
+                    }
+                });
+                
+                // Draw cleanup items (special cyan items)
+                this.cleanupItems.forEach(item => {
+                    if (this.cleanupSpriteLoaded && item.hasSprite) {
+                        // Draw sprite if available with aspect ratio preservation
+                        const sprite = this.cleanupSprite;
+                        const spriteAspectRatio = sprite.width / sprite.height;
+                        const itemAspectRatio = item.width / item.height;
+                        
+                        let drawWidth, drawHeight, drawX, drawY;
+                        
+                        if (spriteAspectRatio > itemAspectRatio) {
+                            // Sprite is wider than item - fit to width
+                            drawWidth = item.width;
+                            drawHeight = item.width / spriteAspectRatio;
+                            drawX = item.x;
+                            drawY = item.y + (item.height - drawHeight) / 2; // Center vertically
+                        } else {
+                            // Sprite is taller than item - fit to height
+                            drawHeight = item.height;
+                            drawWidth = item.height * spriteAspectRatio;
+                            drawX = item.x + (item.width - drawWidth) / 2; // Center horizontally
+                            drawY = item.y;
+                        }
+                        
+                        this.ctx.drawImage(sprite, drawX, drawY, drawWidth, drawHeight);
+                    } else {
+                        // Fallback to colored rectangle
+                        this.ctx.fillStyle = item.color;
+                        this.ctx.fillRect(item.x, item.y, item.width, item.height);
+                        
+                        // Add recycling symbol detail
+                        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        this.ctx.fillRect(item.x + 5, item.y + 5, 15, 15);
+                        this.ctx.fillStyle = item.color;
+                        this.ctx.fillRect(item.x + 7, item.y + 7, 11, 11);
+                    }
+                });
+                
+                // Draw explosions
+                this.explosions.forEach(explosion => {
+                    const alpha = explosion.life / 10;
+                    this.ctx.fillStyle = explosion.color === '#00CED1' 
+                        ? `rgba(0, 206, 209, ${alpha})` 
+                        : `rgba(255, 100, 0, ${alpha})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(explosion.x, explosion.y, explosion.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                // Draw dialogue box (on top of everything)
+                this.drawDialogue();
+            }
+            
+            gameOver() {
+                this.gameRunning = false;
+                this.gameEnded = true;
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('gameOver').style.display = 'block';
+                console.log('Game Over - game stopped');
+            }
+            
+            startVictoryDefeatConditionChecking() {
+                console.log('Starting victory/defeat condition checking...');
+                console.log('Victory/defeat condition checking is now ENABLED - 0% acidity will trigger victory');
+                // Enable continuous checking by setting flag to true
+                this.victoryDefeatCheckTimer = null;
+                this.victoryDefeatCheckingEnabled = true;
+            }
+            
+            checkVictoryDefeatConditions() {
+                if (this.gameEnded) return; // Already ended
+                
+                // Debug: Log current pollution level
+                console.log(`Checking victory/defeat conditions - Pollution: ${this.pollutionLevel}%, Score: ${this.score}, Lives: ${this.lives}, UN Complete: ${this.unAnnouncementComplete}, Checking Enabled: ${this.victoryDefeatCheckingEnabled}`);
+                
+                // Check for victory conditions (only score reaches 5000 after UN announcement)
+                if (this.score >= 5000 && this.unAnnouncementComplete) {
+                    console.log('Victory condition met! Score reached 5000 after UN announcement');
+                    this.triggerVictory();
+                    return;
+                }
+                
+                // Check for defeat conditions (acidity reaches 100% or lives reach 0)
+                if (this.pollutionLevel >= this.maxPollution || this.lives <= 0) {
+                    console.log('Defeat condition met! Pollution level is 100% or lives are 0');
+                    this.triggerDefeat();
+                    return;
+                }
+            }
+            
+            triggerVictory() {
+                console.log('Victory condition met! Score reached 5000');
+                console.log('Starting victory dialogue sequence...');
+                this.gameEnded = true;
+                this.gameRunning = false;
+                this.victoryDefeatDialogueActive = true;
+                this.victoryDefeatSequence = 1;
+                
+                // Start victory dialogue sequence using special sequence number
+                this.dialogueSequence = 100; // Special sequence for victory
+                this.startDialogue("Good job, Crabby! The fight is hard, but we're winning!", [0, 3]);
+                console.log('Victory dialogue started with sequence:', this.dialogueSequence);
+            }
+            
+            triggerDefeat() {
+                console.log('Defeat condition met! Acidity reached 100% or lives reached 0');
+                this.gameEnded = true;
+                this.gameRunning = false;
+                this.victoryDefeatDialogueActive = true;
+                this.victoryDefeatSequence = 1;
+                
+                // Start defeat dialogue sequence using special sequence number
+                this.dialogueSequence = 200; // Special sequence for defeat
+                
+                // Check if defeat is due to lives reaching 0 (after UN announcement)
+                if (this.lives <= 0 && this.unAnnouncementComplete) {
+                    // Add 1 second delay before showing Krill's dialogue
+                    setTimeout(() => {
+                        this.startDialogue("Crabby, no...", [3, 0]);
+                    }, 1000);
+                } else {
+                    // No delay for other defeat conditions
+                    this.startDialogue("Crabby, no...", [3, 0]);
+                }
+            }
+            
+            showVictoryScreen() {
+                console.log('Showing victory screen');
+                this.victoryDefeatDialogueActive = false;
+                
+                // Stop background music and play victory sound
+                this.stopBackgroundMusic();
+                this.playVictorySound();
+                
+                // Hide game container
+                document.getElementById('gameContainer').style.display = 'none';
+                
+                // Create victory screen container (like intro screen)
+                const victoryScreen = document.createElement('div');
+                victoryScreen.id = 'victoryScreen';
+                victoryScreen.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 50%, #000080 100%);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 90;
+                    color: white;
+                    font-family: 'Arial', sans-serif;
+                `;
+                
+                // Create victory background container (800x600 with rounded corners)
+                const victoryBackground = document.createElement('div');
+                victoryBackground.style.cssText = `
+                    width: 800px;
+                    height: 600px;
+                    background-image: url('assets/images/victory.png');
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 20px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 30px;
+                `;
+                
+                // Create top content container
+                const topContent = document.createElement('div');
+                topContent.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: flex-start;
+                `;
+                
+                // Add caption
+                const caption = document.createElement('div');
+                caption.textContent = 'You have avoided';
+                caption.style.cssText = `
+                    color: white;
+                    font-size: 36px;
+                    font-weight: bold;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    margin-bottom: 20px;
+                    text-align: center;
+                `;
+                
+                // Add title image
+                const titleImg = document.createElement('img');
+                titleImg.src = 'title.png';
+                titleImg.style.cssText = `
+                    max-width: 400px;
+                    height: auto;
+                `;
+                
+                // Create play again button
+                const playAgainBtn = document.createElement('button');
+                playAgainBtn.textContent = 'Play Again';
+                playAgainBtn.style.cssText = `
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 15px 40px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-size: 24px;
+                    font-weight: bold;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                    transition: all 0.3s ease;
+                `;
+                
+                // Add hover effects
+                playAgainBtn.addEventListener('mouseenter', () => {
+                    playAgainBtn.style.background = '#45a049';
+                    playAgainBtn.style.transform = 'translateY(-2px)';
+                    playAgainBtn.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                });
+                
+                playAgainBtn.addEventListener('mouseleave', () => {
+                    playAgainBtn.style.background = '#4CAF50';
+                    playAgainBtn.style.transform = 'translateY(0)';
+                    playAgainBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                });
+                
+                playAgainBtn.addEventListener('click', () => {
+                    this.restart();
+                });
+                
+                // Assemble the screen
+                topContent.appendChild(caption);
+                topContent.appendChild(titleImg);
+                // Add final score
+                const finalScore = document.createElement('div');
+                finalScore.textContent = `Final Score: ${this.score}`;
+                finalScore.style.cssText = `
+                    color: white;
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    margin-top: 20px;
+                    text-align: center;
+                `;
+                topContent.appendChild(finalScore);
+                victoryBackground.appendChild(topContent);
+                victoryBackground.appendChild(playAgainBtn);
+                victoryScreen.appendChild(victoryBackground);
+                document.body.appendChild(victoryScreen);
+            }
+            
+            showDefeatScreen() {
+                console.log('Showing defeat screen');
+                this.victoryDefeatDialogueActive = false;
+                
+                // Stop background music and play defeat sound
+                this.stopBackgroundMusic();
+                this.playDefeatSound();
+                
+                // Hide game container
+                document.getElementById('gameContainer').style.display = 'none';
+                
+                // Create defeat screen container (like intro screen)
+                const defeatScreen = document.createElement('div');
+                defeatScreen.id = 'defeatScreen';
+                defeatScreen.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 50%, #000080 100%);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 90;
+                    color: white;
+                    font-family: 'Arial', sans-serif;
+                `;
+                
+                // Create defeat background container (800x600 with rounded corners)
+                const defeatBackground = document.createElement('div');
+                defeatBackground.style.cssText = `
+                    width: 800px;
+                    height: 600px;
+                    background-image: url('assets/images/defeat.png');
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 20px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 30px;
+                `;
+                
+                // Create top content container
+                const topContent = document.createElement('div');
+                topContent.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: flex-start;
+                `;
+                
+                // Add caption
+                const caption = document.createElement('div');
+                caption.textContent = 'You have reached';
+                caption.style.cssText = `
+                    color: white;
+                    font-size: 36px;
+                    font-weight: bold;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    margin-bottom: 20px;
+                    text-align: center;
+                `;
+                
+                // Add title image
+                const titleImg = document.createElement('img');
+                titleImg.src = 'assets/images/title.png';
+                titleImg.style.cssText = `
+                    max-width: 400px;
+                    height: auto;
+                `;
+                
+                // Create play again button
+                const playAgainBtn = document.createElement('button');
+                playAgainBtn.textContent = 'Play Again';
+                playAgainBtn.style.cssText = `
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 15px 40px;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-size: 24px;
+                    font-weight: bold;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                    transition: all 0.3s ease;
+                `;
+                
+                // Add hover effects
+                playAgainBtn.addEventListener('mouseenter', () => {
+                    playAgainBtn.style.background = '#45a049';
+                    playAgainBtn.style.transform = 'translateY(-2px)';
+                    playAgainBtn.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                });
+                
+                playAgainBtn.addEventListener('mouseleave', () => {
+                    playAgainBtn.style.background = '#4CAF50';
+                    playAgainBtn.style.transform = 'translateY(0)';
+                    playAgainBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+                });
+                
+                playAgainBtn.addEventListener('click', () => {
+                    this.restart();
+                });
+                
+                // Assemble the screen
+                topContent.appendChild(caption);
+                topContent.appendChild(titleImg);
+                // Add final score
+                const finalScore = document.createElement('div');
+                finalScore.textContent = `Final Score: ${this.score}`;
+                finalScore.style.cssText = `
+                    color: white;
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    margin-top: 20px;
+                    text-align: center;
+                `;
+                topContent.appendChild(finalScore);
+                defeatBackground.appendChild(topContent);
+                defeatBackground.appendChild(playAgainBtn);
+                defeatScreen.appendChild(defeatBackground);
+                document.body.appendChild(defeatScreen);
+            }
+            
+            restart() {
+                // Destroy current game instance and create a new one
+                console.log('=== RESTART PROCESS STARTED ===');
+                console.log('Destroying current game instance and creating new one...');
+                
+                // Set restarting flag to prevent multiple instances
+                window.isRestarting = true;
+                
+                // Stop the current game completely
+                this.gameRunning = false;
+                this.gameEnded = true;
+                this.destroyed = true; // Add destruction flag to stop game loop
+                console.log('Game state set to destroyed');
+                
+                // Stop all audio immediately and properly clean up
+                if (this.audio.background) {
+                    this.audio.background.pause();
+                    this.audio.background.currentTime = 0;
+                    this.audio.background.src = '';
+                    this.audioInitialized = false;
+                }
+                if (this.audio.victory) {
+                    this.audio.victory.pause();
+                    this.audio.victory.currentTime = 0;
+                    this.audio.victory.src = '';
+                }
+                if (this.audio.defeat) {
+                    this.audio.defeat.pause();
+                    this.audio.defeat.currentTime = 0;
+                    this.audio.defeat.src = '';
+                }
+                
+                // Force garbage collection hint
+                this.audio = {
+                    background: null,
+                    victory: null,
+                    defeat: null
+                };
+                
+                // Clear any existing timers
+                if (this.celebrationDelayTimer) {
+                    clearTimeout(this.celebrationDelayTimer);
+                    this.celebrationDelayTimer = null;
+                    console.log('Cleared celebration delay timer');
+                }
+                if (this.highAcidityDelayTimer) {
+                    clearTimeout(this.highAcidityDelayTimer);
+                    this.highAcidityDelayTimer = null;
+                    console.log('Cleared high acidity delay timer');
+                }
+                if (this.trashSpawnIncreaseTimer) {
+                    clearInterval(this.trashSpawnIncreaseTimer);
+                    this.trashSpawnIncreaseTimer = null;
+                    console.log('Cleared trash spawn increase timer');
+                }
+                if (this.unInterventionTimer) {
+                    clearTimeout(this.unInterventionTimer);
+                    this.unInterventionTimer = null;
+                    console.log('Cleared UN intervention timer');
+                }
+                if (this.victoryDefeatCheckTimer) {
+                    clearTimeout(this.victoryDefeatCheckTimer);
+                    this.victoryDefeatCheckTimer = null;
+                    console.log('Cleared victory/defeat check timer');
+                }
+                
+                // Clear all game arrays to stop any ongoing processes
+                const oldTrashCount = this.trash.length;
+                const oldCleanupCount = this.cleanupItems.length;
+                this.bullets = [];
+                this.trash = [];
+                this.cleanupItems = [];
+                this.bubbles = [];
+                this.explosions = [];
+                this.dashTrails = [];
+                console.log(`Cleared game arrays: ${oldTrashCount} trash, ${oldCleanupCount} cleanup items`);
+                
+                // Remove victory/defeat screens if they exist
+                const victoryScreen = document.getElementById('victoryScreen');
+                if (victoryScreen) {
+                    victoryScreen.remove();
+                    console.log('Removed victory screen');
+                }
+                const defeatScreen = document.getElementById('defeatScreen');
+                if (defeatScreen) {
+                    defeatScreen.remove();
+                    console.log('Removed defeat screen');
+                }
+                
+                // Remove all event listeners by cloning buttons
+                const playBtn = document.getElementById('playBtn');
+                const restartBtn = document.getElementById('restartBtn');
+                const resumeBtn = document.getElementById('resumeBtn');
+                
+                if (playBtn) {
+                    playBtn.replaceWith(playBtn.cloneNode(true));
+                    console.log('Removed play button event listeners');
+                }
+                if (restartBtn) {
+                    restartBtn.replaceWith(restartBtn.cloneNode(true));
+                    console.log('Removed restart button event listeners');
+                }
+                if (resumeBtn) {
+                    resumeBtn.replaceWith(resumeBtn.cloneNode(true));
+                    console.log('Removed resume button event listeners');
+                }
+                
+                // Hide game over screen
+                const gameOverScreen = document.getElementById('gameOver');
+                if (gameOverScreen) {
+                    gameOverScreen.style.display = 'none';
+                    console.log('Hidden game over screen');
+                }
+                
+                // Restore original instructions text
+                const instructions = document.getElementById('instructions');
+                if (instructions) {
+                    instructions.textContent = 'Use A/D or ←/→ to move | SPACE to dash | ESC to pause';
+                    instructions.style.color = 'white';
+                    instructions.style.fontWeight = 'normal';
+                    console.log('Restored original instructions text');
+                }
+                
+                // Clear the current instance reference
+                const oldInstance = window.gameInstance;
+                window.gameInstance = null;
+                console.log('Cleared window.gameInstance reference');
+                
+                // Wait a frame to ensure cleanup is complete, then create new instance
+                requestAnimationFrame(() => {
+                    console.log('=== CREATING NEW INSTANCE ===');
+                    // Double-check that the old instance is truly stopped
+                    if (oldInstance && oldInstance.destroyed) {
+                        console.log('✅ Old instance properly destroyed');
+                    } else {
+                        console.warn('⚠️ Old instance may not be fully destroyed');
+                    }
+                    
+                    // Create new instance
+                    window.gameInstance = new OceanDefender();
+                    console.log('✅ New game instance created after restart');
+                    
+                    // Clear restarting flag
+                    window.isRestarting = false;
+                    console.log('=== RESTART PROCESS COMPLETED ===');
+                });
+            }
+            
+            resume() {
+                console.log('Setting gameRunning = true due to resume() call');
+                this.gameRunning = true;
+                this.isPaused = false;
+                document.getElementById('pauseScreen').style.display = 'none';
+                
+                // Resume background music only if game is not destroyed
+                if (this.audio.background && !this.destroyed) {
+                    this.audio.background.play().catch(error => {
+                        console.warn('Could not resume background music:', error);
+                    });
+                }
+                
+                // Resume active timers
+                this.resumeTimers();
+            }
+            
+            togglePause() {
+                if (this.gameRunning) {
+                    this.pause();
+                } else {
+                    this.resume();
+                }
+            }
+            
+            pause() {
+                console.log('Setting gameRunning = false due to pause() call');
+                this.gameRunning = false;
+                this.isPaused = true;
+                document.getElementById('pauseScreen').style.display = 'block';
+                
+                // Pause background music only if game is not destroyed
+                if (this.audio.background && !this.destroyed) {
+                    this.audio.background.pause();
+                }
+                
+                // Pause active timers
+                this.pauseTimers();
+            }
+            
+            pauseTimers() {
+                // Clear active timers and store their remaining time
+                this.pausedTimers = [];
+                
+                // Clear trash spawn increase timer
+                if (this.trashSpawnIncreaseTimer) {
+                    clearInterval(this.trashSpawnIncreaseTimer);
+                    this.trashSpawnIncreaseTimer = null;
+                }
+                
+                // Clear celebration delay timer
+                if (this.celebrationDelayTimer) {
+                    clearTimeout(this.celebrationDelayTimer);
+                    this.celebrationDelayTimer = null;
+                }
+                
+                // Clear high acidity delay timer
+                if (this.highAcidityDelayTimer) {
+                    clearTimeout(this.highAcidityDelayTimer);
+                    this.highAcidityDelayTimer = null;
+                }
+                
+                // Clear victory/defeat check timer
+                if (this.victoryDefeatCheckTimer) {
+                    clearTimeout(this.victoryDefeatCheckTimer);
+                    this.victoryDefeatCheckTimer = null;
+                }
+                
+                // Clear UN intervention timer
+                if (this.unInterventionTimer) {
+                    clearTimeout(this.unInterventionTimer);
+                    this.unInterventionTimer = null;
+                }
+            }
+            
+            resumeTimers() {
+                // Resume timers that were active before pause
+                if (this.blueSquaresEnabled && !this.trashSpawnIncreaseTimer) {
+                    this.startProgressiveTrashIncreases();
+                }
+            }
+            
+            startDash(direction) {
+                if (this.dashCooldown <= 0 && !this.crab.isDashing) {
+                    this.crab.isDashing = true;
+                    this.crab.dashDirection = direction;
+                    this.crab.dashTimer = this.dashDuration;
+                    this.dashCooldown = 20; // Cooldown frames
+                }
+            }
+            
+            stopDash() {
+                this.crab.isDashing = false;
+                this.crab.dashDirection = 0;
+            }
+            
+            createDashTrail() {
+                if (this.crab.isDashing) {
+                    this.dashTrails.push({
+                        x: this.crab.x + this.crab.width / 2,
+                        y: this.crab.y + this.crab.height / 2,
+                        size: Math.random() * 8 + 4,
+                        life: 15,
+                        speed: Math.random() * 2 + 1
+                    });
+                }
+            }
+            
+            updateCrabAnimation() {
+                this.animationCounter++;
+                
+                // Update hit timer
+                if (this.crab.hitTimer > 0) {
+                    this.crab.hitTimer--;
+                }
+                
+                // Determine animation state
+                if (this.lives <= 0) {
+                    this.currentState = 'dying';
+                } else if (this.crab.hitTimer > 0) {
+                    this.currentState = 'hit';
+                } else if (this.crab.isDashing || this.keys['KeyA'] || this.keys['ArrowLeft'] || this.keys['KeyD'] || this.keys['ArrowRight']) {
+                    if (this.facingDirection > 0) {
+                        this.currentState = 'walkingRight';
+                    } else {
+                        this.currentState = 'walkingLeft';
+                    }
+                } else {
+                    this.currentState = 'idle';
+                }
+                
+                // Get frame count for current state
+                const frameCount = this.sprites[this.currentState] ? this.sprites[this.currentState].length : 0;
+                if (frameCount === 0) {
+                    // No sprites loaded yet, just keep current frame at 0
+                    this.currentFrame = 0;
+                    return;
+                }
+                
+                // Update animation frame
+                if (this.animationCounter >= this.animationSpeed) {
+                    this.currentFrame = (this.currentFrame + 1) % frameCount;
+                    this.animationCounter = 0;
+                }
+            }
+            
+            drawCrab() {
+                // Always show something - either sprite or fallback rectangle
+                const spriteArray = this.sprites[this.currentState];
+                
+                // Check if we have sprites for this state
+                if (this.allSpritesLoaded && spriteArray.length > 0) {
+                    // Ensure we have a valid frame index
+                    if (this.currentFrame >= spriteArray.length) {
+                        this.currentFrame = 0;
+                    }
+                    
+                    const sprite = spriteArray[this.currentFrame];
+                    
+                    // Check if the sprite is ready
+                    if (sprite && sprite.complete && sprite.naturalWidth > 0 && sprite.naturalHeight > 0) {
+                        // Draw the sprite
+                        const destX = this.crab.x;
+                        const destY = this.crab.y;
+                        this.ctx.drawImage(sprite, destX, destY, this.crab.width, this.crab.height);
+                        return;
+                    }
+                }
+                
+                // Fallback to simple rectangle if sprites not available
+                this.ctx.fillStyle = this.crab.color;
+                this.ctx.fillRect(this.crab.x, this.crab.y, this.crab.width, this.crab.height);
+            }
+            
+            gameLoop() {
+                // Check if this instance has been destroyed
+                if (this.destroyed) {
+                    console.log('Game loop stopped - instance destroyed');
+                    return; // Stop the loop completely
+                }
+                
+                // Always continue the loop, even when paused for dialogue
+                // Only stop if there's a critical error
+                
+                // Debug: Check if game objects exist
+                if (!this.crab) {
+                    console.warn('Game objects not initialized, initializing now...');
+                    this.initializeGame();
+                    // Don't start a new game loop here, just continue the current one
+                    requestAnimationFrame(() => this.gameLoop());
+                    return;
+                }
+                
+                try {
+                    // Always update dialogue system, even when game is paused
+                    this.updateDialogue();
+                    
+                    // Only update game logic if game is running and not game over
+                    if (this.gameRunning && !this.gameEnded) {
+                        this.update();
+                        this.updateCrabAnimation();
+                    }
+                    
+                    // Always draw, even when paused (for dialogue display)
+                    this.draw();
+                    
+                    requestAnimationFrame(() => this.gameLoop());
+                } catch (error) {
+                    console.error('Error in game loop:', error);
+                    // Continue the loop even if there's an error
+                    requestAnimationFrame(() => this.gameLoop());
+                }
+            }
+            
+            loadSprites() {
+                console.log('loadSprites() called');
+                
+                // Reset counters
+                this.totalAssets = 0;
+                this.loadedAssets = 0;
+                this.assetCategories.sprites.count = 0;
+                
+                // Count total sprites we're going to load
+                const idleCount = 28; // CrabR010.png to CrabR037.png
+                const walkingRightCount = 10; // CrabR000.png to CrabR009.png
+                const walkingLeftCount = 10; // CrabR000.png to CrabR009.png
+                const hitCount = 2; // CrabR038.png to CrabR039.png
+                const dyingCount = 14; // CrabR038.png to CrabR051.png
+                const characterSprites = 4; // Krill, Scientist, Commander, UN
+                const backgroundSprite = 1; // Background overlay
+                const trashSprites = 4; // trash1.png to trash4.png
+                const cleanupSprite = 1; // cleanup.png
+                
+                this.assetCategories.sprites.count = idleCount + walkingRightCount + walkingLeftCount + hitCount + dyingCount + characterSprites + backgroundSprite + trashSprites + cleanupSprite;
+                this.totalAssets = this.assetCategories.sprites.count;
+                
+                console.log(`Starting to load ${this.totalAssets} sprites...`);
+                
+                let spritesLoaded = 0;
+                const totalSprites = this.assetCategories.sprites.count;
+                
+                const assetLoaded = () => {
+                    this.loadedAssets++;
+                    this.assetCategories.sprites.loaded++;
+                    spritesLoaded++;
+                    console.log(`Sprite loaded: ${spritesLoaded}/${totalSprites}`);
+                    this.updateLoadingProgress();
+                    
+                    // Mark sprites as loaded when we have at least some sprites
+                    if (spritesLoaded >= Math.min(totalSprites, 10)) { // Load at least 10 sprites
+                        console.log('Enough sprites loaded to start game!');
+                        this.allSpritesLoaded = true;
+                    }
+                };
+                
+                // Load idle sprites (CrabR010.png to CrabR037.png)
+                for (let i = 10; i <= 37; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded idle sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load idle sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded(); // Still count as loaded to prevent infinite loading
+                    };
+                    const spritePath = `assets/sprites/Crab-sprites/crab-idle/CrabR${i.toString().padStart(3, '0')}.png`;
+                    console.log(`Loading: ${spritePath}`);
+                    img.src = spritePath;
+                    this.sprites.idle.push(img);
+                }
+                
+                // Load walking right sprites (CrabR000.png to CrabR009.png)
+                for (let i = 0; i <= 9; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded walking right sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load walking right sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.src = `assets/sprites/Crab-sprites/crab-walking-right/CrabR${i.toString().padStart(3, '0')}.png`;
+                    this.sprites.walkingRight.push(img);
+                }
+                
+                // Load walking left sprites (CrabR000.png to CrabR009.png)
+                for (let i = 0; i <= 9; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded walking left sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load walking left sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.src = `assets/sprites/Crab-sprites/crab-walking-left/CrabR${i.toString().padStart(3, '0')}.png`;
+                    this.sprites.walkingLeft.push(img);
+                }
+                
+                // Load hit sprites (CrabR038.png to CrabR039.png)
+                for (let i = 38; i <= 39; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded hit sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load hit sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.src = `assets/sprites/Crab-sprites/crab-getting-hit/CrabR${i.toString().padStart(3, '0')}.png`;
+                    this.sprites.hit.push(img);
+                }
+                
+                // Load dying sprites (CrabR038.png to CrabR051.png)
+                for (let i = 38; i <= 51; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded dying sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load dying sprite: CrabR${i.toString().padStart(3, '0')}.png`);
+                        assetLoaded();
+                    };
+                    img.src = `assets/sprites/Crab-sprites/crab-dying/CrabR${i.toString().padStart(3, '0')}.png`;
+                    this.sprites.dying.push(img);
+                }
+                
+                // Load Krill sprite sheet
+                this.krillSprite = new Image();
+                this.krillSprite.onload = () => {
+                    this.krillSpriteLoaded = true;
+                    this.krillSpriteWidth = this.krillSprite.width / this.krillExpressions.cols;
+                    this.krillSpriteHeight = this.krillSprite.height / this.krillExpressions.rows;
+                    console.log('Krill sprite sheet loaded!');
+                    console.log(`Krill expression size: ${this.krillSpriteWidth}x${this.krillSpriteHeight}`);
+                    console.log(`Krill sprite dimensions: ${this.krillSprite.width}x${this.krillSprite.height}`);
+                    assetLoaded();
+                };
+                this.krillSprite.onerror = () => {
+                    console.warn('Failed to load Krill sprite sheet');
+                    assetLoaded();
+                };
+                this.krillSprite.src = 'assets/images/krill.png';
+                
+                // Load Scientist sprite
+                this.scientistSprite = new Image();
+                this.scientistSprite.onload = () => {
+                    this.scientistSpriteLoaded = true;
+                    console.log('Scientist sprite loaded!');
+                    console.log(`Scientist sprite dimensions: ${this.scientistSprite.width}x${this.scientistSprite.height}`);
+                    assetLoaded();
+                };
+                this.scientistSprite.onerror = () => {
+                    console.warn('Failed to load Scientist sprite');
+                    assetLoaded();
+                };
+                this.scientistSprite.src = 'assets/images/scientist.png';
+                
+                // Load Army Commander sprite
+                this.commanderSprite = new Image();
+                this.commanderSprite.onload = () => {
+                    this.commanderSpriteLoaded = true;
+                    console.log('Army Commander sprite loaded!');
+                    console.log(`Commander sprite dimensions: ${this.commanderSprite.width}x${this.commanderSprite.height}`);
+                    assetLoaded();
+                };
+                this.commanderSprite.onerror = () => {
+                    console.warn('Failed to load Army Commander sprite');
+                    assetLoaded();
+                };
+                this.commanderSprite.src = 'assets/images/military.png';
+                
+                // Load United Nations sprite
+                this.unSprite = new Image();
+                this.unSprite.onload = () => {
+                    this.unSpriteLoaded = true;
+                    console.log('United Nations sprite loaded!');
+                    console.log(`UN sprite dimensions: ${this.unSprite.width}x${this.unSprite.height}`);
+                    assetLoaded();
+                };
+                this.unSprite.onerror = () => {
+                    console.warn('Failed to load United Nations sprite');
+                    assetLoaded();
+                };
+                this.unSprite.src = 'assets/images/un.png';
+                
+                // Load background overlay image
+                this.backgroundOverlay = new Image();
+                this.backgroundOverlay.onload = () => {
+                    this.backgroundOverlayLoaded = true;
+                    console.log('Background overlay loaded!');
+                    console.log(`Background overlay dimensions: ${this.backgroundOverlay.width}x${this.backgroundOverlay.height}`);
+                    assetLoaded();
+                };
+                this.backgroundOverlay.onerror = () => {
+                    console.warn('Failed to load background overlay');
+                    assetLoaded();
+                };
+                this.backgroundOverlay.src = 'assets/images/game-background2.png';
+                
+                // Load trash sprites (trash1.png to trash4.png)
+                for (let i = 1; i <= 4; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        console.log(`Loaded trash sprite: trash${i}.png`);
+                        assetLoaded();
+                    };
+                    img.onerror = () => {
+                        console.warn(`Failed to load trash sprite: trash${i}.png`);
+                        assetLoaded();
+                    };
+                    img.src = `assets/images/trash${i}.png`;
+                    this.trashSprites.push(img);
+                }
+                
+                // Load cleanup sprite
+                this.cleanupSprite = new Image();
+                this.cleanupSprite.onload = () => {
+                    this.cleanupSpriteLoaded = true;
+                    console.log('Cleanup sprite loaded!');
+                    console.log(`Cleanup sprite dimensions: ${this.cleanupSprite.width}x${this.cleanupSprite.height}`);
+                    assetLoaded();
+                };
+                this.cleanupSprite.onerror = () => {
+                    console.warn('Failed to load cleanup sprite');
+                    assetLoaded();
+                };
+                this.cleanupSprite.src = 'assets/images/cleanup.png';
+                
+                console.log('loadSprites() completed - all sprite loading initiated');
+            }
+            
+            startLoading() {
+                console.log('startLoading() called');
+                
+                this.totalAssets = 0;
+                this.loadedAssets = 0;
+                this.loadSprites();
+                this.loadTextures(); // Placeholder for future textures
+                this.loadSounds(); // Placeholder for future sounds
+                this.updateLoadingProgress();
+                
+                console.log('startLoading() completed');
+                
+                // Fallback timer to prevent infinite loading
+                setTimeout(() => {
+                    if (this.loadingProgress < 100) {
+                        console.warn('Loading timeout - forcing game start');
+                        this.loadingProgress = 100;
+                        this.allSpritesLoaded = true;
+                        this.gameRunning = true;
+                        document.getElementById('gameContainer').style.display = 'block';
+                        document.getElementById('loadingScreen').style.display = 'none';
+                        
+                        // Ensure game objects are initialized
+                        if (!this.crab) {
+                            console.log('Initializing game objects due to timeout...');
+                            this.initializeGame();
+                        }
+                    }
+                }, 10000); // 10 second timeout
+            }
+            
+            loadTextures() {
+                // Placeholder for texture loading
+                // Example: this.loadTexture('background', 'textures/background.png');
+                // Example: this.loadTexture('floor', 'textures/sand.png');
+            }
+            
+            loadSounds() {
+                console.log('Loading audio files...');
+                
+                // Create audio elements with proper error handling
+                const createAudioElement = (src, volume, loop = false) => {
+                    const audio = new Audio();
+                    audio.preload = 'auto';
+                    audio.volume = volume;
+                    if (loop) audio.loop = true;
+                    
+                    audio.oncanplaythrough = () => {
+                        console.log(`Audio oncanplaythrough triggered for: ${src} (loop: ${loop})`);
+                        
+                        // Only increment counters if loading is not already complete
+                        if (this.loadingProgress < 100) {
+                            this.loadedAssets++;
+                            this.assetCategories.sounds.loaded++;
+                            console.log(`Audio loaded: ${src}`);
+                            
+                            // Mark specific audio as loaded
+                            if (src.includes('background')) {
+                                this.audioLoaded.background = true;
+                            } else if (src.includes('victory')) {
+                                this.audioLoaded.victory = true;
+                            } else if (src.includes('defeat')) {
+                                this.audioLoaded.defeat = true;
+                            }
+                            
+                            this.updateLoadingProgress();
+                        } else {
+                            console.log(`Audio oncanplaythrough ignored - loading already complete: ${src}`);
+                        }
+                    };
+                    
+                    audio.onerror = (e) => {
+                        console.warn(`Failed to load audio: ${src}`, e);
+                        this.loadedAssets++;
+                        this.assetCategories.sounds.loaded++;
+                        this.updateLoadingProgress();
+                    };
+                    
+                    audio.src = src;
+                    return audio;
+                };
+                
+                // Load background music
+                this.audio.background = createAudioElement('assets/audio/background.mp3', 0.5, true);
+                this.totalAssets++;
+                this.assetCategories.sounds.count++;
+                
+                // Load victory sound
+                this.audio.victory = createAudioElement('assets/audio/victory.mp3', 0.7, false);
+                this.totalAssets++;
+                this.assetCategories.sounds.count++;
+                
+                // Load defeat sound
+                this.audio.defeat = createAudioElement('assets/audio/defeat.mp3', 0.7, false);
+                this.totalAssets++;
+                this.assetCategories.sounds.count++;
+            }
+            
+            loadTexture(name, src) {
+                this.totalAssets++;
+                this.assetCategories.textures.count++;
+                
+                const img = new Image();
+                img.onload = () => {
+                    this.loadedAssets++;
+                    this.assetCategories.textures.loaded++;
+                    this.updateLoadingProgress();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load texture: ${src}`);
+                    this.loadedAssets++;
+                    this.assetCategories.textures.loaded++;
+                    this.updateLoadingProgress();
+                };
+                img.src = src;
+                
+                // Store texture for later use
+                if (!this.textures) this.textures = {};
+                this.textures[name] = img;
+            }
+            
+            loadSound(name, src) {
+                this.totalAssets++;
+                this.assetCategories.sounds.count++;
+                
+                const audio = new Audio();
+                audio.oncanplaythrough = () => {
+                    // Only increment counters if loading is not already complete
+                    if (this.loadingProgress < 100) {
+                        this.loadedAssets++;
+                        this.assetCategories.sounds.loaded++;
+                        this.updateLoadingProgress();
+                    } else {
+                        console.log(`Audio oncanplaythrough ignored - loading already complete: ${src}`);
+                    }
+                };
+                audio.onerror = () => {
+                    console.warn(`Failed to load sound: ${src}`);
+                    this.loadedAssets++;
+                    this.assetCategories.sounds.loaded++;
+                    this.updateLoadingProgress();
+                };
+                audio.src = src;
+                
+                // Store sound for later use
+                if (!this.sounds) this.sounds = {};
+                this.sounds[name] = audio;
+            }
+            
+            updateLoadingProgress() {
+                // Calculate progress based on loaded assets
+                if (this.totalAssets > 0) {
+                    this.loadingProgress = Math.round((this.loadedAssets / this.totalAssets) * 100);
+                } else {
+                    this.loadingProgress = 0;
+                }
+                
+                // Update loading bar and text
+                const loadingProgressBar = document.getElementById('loadingProgress');
+                const loadingText = document.getElementById('loadingText');
+                
+                if (loadingProgressBar) {
+                    loadingProgressBar.style.width = `${this.loadingProgress}%`;
+                }
+                if (loadingText) {
+                    loadingText.textContent = `${this.loadingProgress}%`;
+                }
+                
+                console.log(`Loading: ${this.loadedAssets}/${this.totalAssets} (${this.loadingProgress}%)`);
+                
+                if (this.loadingProgress >= 100) {
+                    console.log('Loading complete! Starting game...');
+                    
+                    // Set game as running
+                    console.log('Setting gameRunning = true due to loading completion');
+                    this.gameRunning = true;
+                    this.allSpritesLoaded = true;
+                    
+                    // Show game container and hide loading screen
+                    const gameContainer = document.getElementById('gameContainer');
+                    const loadingScreen = document.getElementById('loadingScreen');
+                    
+                    if (gameContainer) {
+                        gameContainer.style.display = 'block';
+                    }
+                    if (loadingScreen) {
+                        loadingScreen.style.display = 'none';
+                    }
+                    
+                    // Start the game loop now that everything is ready
+                    if (!this.gameLoopStarted) {
+                        this.gameLoopStarted = true;
+                        this.gameLoop();
+                    }
+                    
+                    // Start background music after loading is complete
+                    if (!this.audioInitialized && this.audio.background && this.audioLoaded.background) {
+                        this.startBackgroundMusic();
+                    }
+                    
+                    console.log('Game started with sprites loaded!');
+                }
+            }
+            
+            startBackgroundMusic() {
+                if (this.audio.background && this.audioLoaded.background && !this.destroyed && !this.audioInitialized) {
+                    this.audio.background.currentTime = 0;
+                    this.audio.background.volume = 0.5; // Restore volume
+                    this.audio.background.play().catch(error => {
+                        console.warn('Could not play background music:', error);
+                    });
+                    this.audioInitialized = true;
+                    console.log('Background music started');
+                } else {
+                    console.warn('Cannot start background music: audio not loaded or already initialized');
+                }
+            }
+            
+            stopBackgroundMusic() {
+                if (this.audio.background) {
+                    this.audio.background.pause();
+                    this.audio.background.currentTime = 0;
+                    this.audio.background.volume = 0; // Mute the audio completely
+                    this.audio.background.src = ''; // Completely remove the audio source
+                    this.audioInitialized = false;
+                    console.log('Background music stopped');
+                }
+            }
+            
+            playVictorySound() {
+                if (this.audio.victory && this.audioLoaded.victory && !this.destroyed) {
+                    this.audio.victory.currentTime = 0;
+                    this.stopBackgroundMusic();
+                    this.audio.victory.play().catch(error => {
+                        console.warn('Could not play victory sound:', error);
+                    });
+                    console.log('Victory sound played');
+                } else {
+                    console.warn('Cannot play victory sound: audio not loaded');
+                }
+            }
+            
+            playDefeatSound() {
+                if (this.audio.defeat && this.audioLoaded.defeat && !this.destroyed) {
+                    this.audio.defeat.currentTime = 0;
+                    this.stopBackgroundMusic();
+                    this.audio.defeat.play().catch(error => {
+                        console.warn('Could not play defeat sound:', error);
+                    });
+                    console.log('Defeat sound played');
+                } else {
+                    console.warn('Cannot play defeat sound: audio not loaded');
+                }
+            }
+            
+
+            
+            // Dialogue System Methods
+            startDialogue(text, expression = [0, 0]) {
+                this.dialogue.active = true;
+                this.dialogue.text = text;
+                this.dialogue.currentExpression = expression;
+                this.dialogue.startTime = Date.now();
+                this.dialogue.canSkip = false;
+                
+                // Pause the game when dialogue appears
+                console.log('Setting gameRunning = false due to dialogue start');
+                this.gameRunning = false;
+                
+                // Hide instructions when dialogue is active
+                document.getElementById('instructions').style.display = 'none';
+                
+                console.log(`Dialogue started: "${text}" with expression [${expression[0]}, ${expression[1]}]`);
+                console.log(`Dialogue active: ${this.dialogue.active}`);
+                console.log(`Krill sprite loaded: ${this.krillSpriteLoaded}`);
+            }
+            
+            startScientistDialogue(text) {
+                this.dialogue.active = true;
+                this.dialogue.text = text;
+                this.dialogue.currentExpression = [0, 0]; // Not used for scientist
+                this.dialogue.startTime = Date.now();
+                this.dialogue.canSkip = false;
+                
+                // Pause the game when dialogue appears
+                this.gameRunning = false;
+                
+                // Hide instructions when dialogue is active
+                document.getElementById('instructions').style.display = 'none';
+                
+                console.log(`Scientist dialogue started: "${text}"`);
+                console.log(`Dialogue active: ${this.dialogue.active}`);
+                console.log(`Scientist sprite loaded: ${this.scientistSpriteLoaded}`);
+            }
+            
+            startCommanderDialogue(text) {
+                this.dialogue.active = true;
+                this.dialogue.text = text;
+                this.dialogue.currentExpression = [0, 0]; // Not used for commander
+                this.dialogue.startTime = Date.now();
+                this.dialogue.canSkip = false;
+                
+                // Pause the game when dialogue appears
+                this.gameRunning = false;
+                
+                // Hide instructions when dialogue is active
+                document.getElementById('instructions').style.display = 'none';
+                
+                console.log(`Commander dialogue started: "${text}"`);
+                console.log(`Dialogue active: ${this.dialogue.active}`);
+                console.log(`Commander sprite loaded: ${this.commanderSpriteLoaded}`);
+            }
+            
+            startUNDialogue(text) {
+                this.dialogue.active = true;
+                this.dialogue.text = text;
+                this.dialogue.currentExpression = [0, 0]; // Not used for UN
+                this.dialogue.startTime = Date.now();
+                this.dialogue.canSkip = false;
+                
+                // Pause the game when dialogue appears
+                this.gameRunning = false;
+                
+                // Hide instructions when dialogue is active
+                document.getElementById('instructions').style.display = 'none';
+                
+                console.log(`UN dialogue started: "${text}"`);
+                console.log(`Dialogue active: ${this.dialogue.active}`);
+                console.log(`UN sprite loaded: ${this.unSpriteLoaded}`);
+            }
+            
+            endDialogue() {
+                this.dialogue.active = false;
+                this.dialogue.text = "";
+                
+                // Check if we need to show the next dialogue
+                if (this.dialogueSequence === 1) {
+                    // First Krill dialogue ended, show second dialogue
+                    this.dialogueSequence = 2;
+                    console.log('First Krill dialogue ended, starting second dialogue...');
+                    this.startDialogue("They're littering our home with their trash, which is making the water acid.", [2, 0]);
+                } else if (this.dialogueSequence === 2) {
+                    // Second Krill dialogue ended, show third dialogue
+                    this.dialogueSequence = 3;
+                    console.log('Second Krill dialogue ended, starting third dialogue...');
+                    this.startDialogue("But we're not gonna let that happen. We need to fight to save the ocean!", [1, 3]);
+                } else if (this.dialogueSequence === 3) {
+                    // Third Krill dialogue ended, mark as complete and schedule scientist
+                    this.dialogueSequence = 0;
+                    this.krillDialoguesComplete = true;
+                    console.log('Setting gameRunning = true due to Krill dialogues completion');
+                    this.gameRunning = true;
+                    console.log('Krill dialogues complete, scheduling scientist dialogue in 10 seconds...');
+                    
+                    // Schedule scientist dialogue in 10 seconds
+                    setTimeout(() => {
+                        this.dialogueSequence = 4;
+                        this.gameRunning = false;
+                        this.startScientistDialogue("Hi there! I'm here to help. I have created a solution in the lab that can revert the acidity of the water!");
+                    }, 10000);
+                } else if (this.dialogueSequence === 4) {
+                    // First scientist dialogue ended
+                    this.dialogueSequence = 5;
+                    console.log('First scientist dialogue ended, starting second...');
+                    this.startScientistDialogue("The main drivers of acidification are CO2 emissions, fossil fuel combustion, sewage, and overfishing.");
+                } else if (this.dialogueSequence === 5) {
+                    // Second scientist dialogue ended
+                    this.dialogueSequence = 6;
+                    console.log('Second scientist dialogue ended, starting third...');
+                    this.startScientistDialogue("They destroy the balance of the ocean's pH, making the water unlivable for many important marine creatures.");
+                } else if (this.dialogueSequence === 6) {
+                    // Third scientist dialogue ended
+                    this.dialogueSequence = 7;
+                    console.log('Third scientist dialogue ended, starting fourth...');
+                    this.startScientistDialogue("Shelled animals, such as crabs, combat acidification by releasing Calcium from their shells, which neutralizes the acid waters.");
+                } else if (this.dialogueSequence === 7) {
+                    // Fourth scientist dialogue ended
+                    this.dialogueSequence = 8;
+                    console.log('Fourth scientist dialogue ended, starting fifth...');
+                    this.startScientistDialogue("With so much pollution, the crabs are losing this battle, and so is all of marine life.");
+                } else if (this.dialogueSequence === 8) {
+                    // Fifth scientist dialogue ended
+                    this.dialogueSequence = 9;
+                    console.log('Fifth scientist dialogue ended, starting sixth...');
+                    this.startScientistDialogue("But we found out that limestone and silicate compounds can revert that process!");
+                } else if (this.dialogueSequence === 9) {
+                    // Sixth scientist dialogue ended, show seventh dialogue
+                    this.dialogueSequence = 10;
+                    console.log('Sixth scientist dialogue ended, starting seventh...');
+                    this.startScientistDialogue("We will send you some of this stuff. It should help reduce the acidity of the ocean!");
+                } else if (this.dialogueSequence === 10) {
+                    // Seventh scientist dialogue ended, enable blue squares and resume game
+                    this.dialogueSequence = 0;
+                    this.scientistDialoguesComplete = true;
+                    this.blueSquaresEnabled = true;
+                    console.log('Setting gameRunning = true due to Scientist dialogues completion');
+                    this.gameRunning = true;
+                    console.log('Scientist dialogues complete, enabling blue squares and resuming game...');
+                    
+                    // Immediately spawn one cleanup item so the user can see what it looks like
+                    this.forceSpawnCleanupItem();
+                } else if (this.dialogueSequence === 11) {
+                    // First celebration dialogue ended
+                    this.dialogueSequence = 12;
+                    console.log('First celebration dialogue ended, starting second...');
+                    this.startDialogue("Don't stop now! Keep doing what you're doing, Crabby!", [0, 2]);
+                } else if (this.dialogueSequence === 12) {
+                    // Second celebration dialogue ended, resume game
+                    this.dialogueSequence = 0;
+                    console.log('Setting gameRunning = true due to Celebration dialogues completion');
+                    this.gameRunning = true;
+                    console.log('Celebration dialogues complete, resuming game...');
+                    
+                    // Schedule commander dialogue in 20 seconds
+                    setTimeout(() => {
+                        this.dialogueSequence = 13;
+                        this.gameRunning = false;
+                        this.startCommanderDialogue("ENOUGH with the unnecessary spending!");
+                    }, 20000);
+                } else if (this.dialogueSequence === 13) {
+                    // First commander dialogue ended
+                    this.dialogueSequence = 14;
+                    console.log('First commander dialogue ended, starting second...');
+                    this.startCommanderDialogue("We need to focus on EXPANDING the economy, not LIMITING our growth!");
+                } else if (this.dialogueSequence === 14) {
+                    // Second commander dialogue ended
+                    this.dialogueSequence = 15;
+                    console.log('Second commander dialogue ended, starting third...');
+                    this.startCommanderDialogue("Our enemies can clean up the ocean if they want to. We need MORE factories! MORE!!!");
+                } else if (this.dialogueSequence === 15) {
+                    // Third commander dialogue ended, disable cleanup items and increase trash spawn rate
+                    this.dialogueSequence = 0;
+                    this.commanderDialoguesComplete = true;
+                    this.blueSquaresEnabled = false; // Disable cleanup items
+                    this.cleanupSpawnRate = 0; // Set cleanup spawn rate to 0
+                    this.spawnRate = 0.04; // Double the trash spawn rate (from 0.02 to 0.04)
+                    console.log('Setting gameRunning = true due to Commander dialogues completion');
+                    this.gameRunning = true;
+                    console.log('Commander dialogues complete, disabling cleanup items and increasing trash spawn rate...');
+                    
+                    // Start progressive trash spawn rate increases every 20 seconds
+                    this.startProgressiveTrashIncreases();
+                } else if (this.dialogueSequence === 16) {
+                    // First high acidity Krill dialogue ended
+                    this.dialogueSequence = 17;
+                    console.log('First high acidity Krill dialogue ended, starting second...');
+                    this.startDialogue("We need help... ASAP!", [2, 4]);
+                } else if (this.dialogueSequence === 17) {
+                    // Second high acidity Krill dialogue ended
+                    this.dialogueSequence = 18;
+                    console.log('Second high acidity Krill dialogue ended, starting scientist...');
+                    this.startScientistDialogue("Working on it!");
+                } else if (this.dialogueSequence === 18) {
+                    // Scientist dialogue ended
+                    this.dialogueSequence = 19;
+                    console.log('Scientist dialogue ended, starting first UN dialogue...');
+                    this.startUNDialogue("The United Nations just set a new sustainability goal: \"Life Below Water\" - a commitment to preserve marine life from pollution.");
+                } else if (this.dialogueSequence === 19) {
+                    // First UN dialogue ended
+                    this.dialogueSequence = 20;
+                    console.log('First UN dialogue ended, starting second...');
+                    this.startUNDialogue("Until 2030, all 193 countries in the UN want to eradicate overfishing, and reduce ocean waste.");
+                } else if (this.dialogueSequence === 20) {
+                    // Second UN dialogue ended
+                    this.dialogueSequence = 21;
+                    console.log('Second UN dialogue ended, starting third...');
+                    this.startUNDialogue("From now on, the alkalinization of the ocean will be a priority that cannot be lifted.");
+                } else if (this.dialogueSequence === 21) {
+                    // Third UN dialogue ended, restore cleanup items and stabilize trash spawn rate
+                    this.dialogueSequence = 0;
+                    this.blueSquaresEnabled = true; // Re-enable cleanup items
+                    this.cleanupSpawnRate = 0.006; // Restore cleanup spawn rate
+                    this.spawnRate = 0.04; // Keep trash spawn rate at current level (stabilize)
+                    console.log('Setting gameRunning = true due to UN dialogues completion');
+                    this.gameRunning = true;
+                    console.log('UN dialogues complete, restoring cleanup items and stabilizing trash spawn rate...');
+                    
+                    // Mark UN announcement as complete and start victory/defeat condition checking
+                    this.unAnnouncementComplete = true;
+                    console.log('UN announcement complete, starting 30-second timer for victory/defeat condition checking...');
+                    
+                    // Start checking for victory/defeat conditions after 30 seconds
+                    this.victoryDefeatCheckTimer = setTimeout(() => {
+                        this.startVictoryDefeatConditionChecking();
+                    }, 30000);
+                    
+                    // Stop progressive trash spawn rate increases
+                    if (this.trashSpawnIncreaseTimer) {
+                        clearInterval(this.trashSpawnIncreaseTimer);
+                        this.trashSpawnIncreaseTimer = null;
+                    }
+                    
+                    // UN Intervention: Immediately destroy all trash and apply temporary effects
+                    this.unInterventionActive = true;
+                    
+                    // Create explosion animations for all destroyed trash
+                    this.trash.forEach(item => {
+                        this.createExplosion(item.x + item.width/2, item.y + item.height/2);
+                    });
+                    
+                    this.trash = []; // Destroy all trash immediately
+                    this.cleanupSpawnRate = 0.02; // Increased cleanup spawn rate for 5 seconds
+                    this.spawnRate = 0; // Pause trash generation for 5 seconds
+                    console.log('UN Intervention: All trash destroyed, trash generation paused, cleanup rate increased');
+                    
+                    // Set timer to restore normal conditions after 5 seconds
+                    this.unInterventionTimer = setTimeout(() => {
+                        this.unInterventionActive = false;
+                        this.spawnRate = 0.04; // Restore trash spawn rate
+                        this.cleanupSpawnRate = 0.006; // Restore cleanup spawn rate to higher level
+                        console.log('UN Intervention ended: Normal conditions restored');
+                    }, 5000);
+                    
+                    // Change instructions text to show victory condition
+                    const instructions = document.getElementById('instructions');
+                    if (instructions) {
+                        instructions.textContent = 'Reach the score of 5000 to win';
+                        instructions.style.color = '#FFD700'; // Yellow color
+                        instructions.style.fontWeight = 'bold';
+                    }
+                } else if (this.dialogueSequence === 100) {
+                    // Victory dialogue sequence
+                    if (this.victoryDefeatSequence === 1) {
+                        // First victory dialogue ended, start second
+                        this.victoryDefeatSequence = 2;
+                        this.startDialogue("You managed to bring the acidity level under control! The Coral Reef lives another day!", [0, 2]);
+                    } else if (this.victoryDefeatSequence === 2) {
+                        // Second victory dialogue ended, show victory screen
+                        this.dialogueSequence = 0;
+                        this.victoryDefeatDialogueActive = false;
+                        this.showVictoryScreen();
+                    }
+                } else if (this.dialogueSequence === 200) {
+                    // Defeat dialogue sequence
+                    if (this.victoryDefeatSequence === 1) {
+                        // First defeat dialogue ended, show defeat screen
+                        this.dialogueSequence = 0;
+                        this.victoryDefeatDialogueActive = false;
+                        this.showDefeatScreen();
+                    }
+                }
+                
+                // Show instructions again when all dialogues are done
+                if (this.dialogueSequence === 0) {
+                    document.getElementById('instructions').style.display = 'block';
+                }
+                
+                console.log('Dialogue ended');
+            }
+            
+            
+            updateDialogue() {
+                if (!this.dialogue.active) return;
+                
+                // Check if enough time has passed to allow skipping
+                if (!this.dialogue.canSkip && Date.now() - this.dialogue.startTime >= this.dialogue.skipDelay) {
+                    this.dialogue.canSkip = true;
+                }
+                
+                // Check for space key to skip dialogue
+                if (this.dialogue.canSkip && this.keys['Space']) {
+                    this.endDialogue();
+                }
+            }
+            
+            drawDialogue() {
+                if (!this.dialogue.active) return;
+                
+                // Check if we have the required sprites loaded
+                if ((this.dialogueSequence >= 1 && this.dialogueSequence <= 3 && !this.krillSpriteLoaded) ||
+                    (this.dialogueSequence >= 4 && this.dialogueSequence <= 10 && !this.scientistSpriteLoaded) ||
+                    (this.dialogueSequence >= 11 && this.dialogueSequence <= 12 && !this.krillSpriteLoaded) ||
+                    (this.dialogueSequence >= 13 && this.dialogueSequence <= 15 && !this.commanderSpriteLoaded) ||
+                    (this.dialogueSequence >= 16 && this.dialogueSequence <= 17 && !this.krillSpriteLoaded) ||
+                    (this.dialogueSequence >= 18 && this.dialogueSequence <= 18 && !this.scientistSpriteLoaded) ||
+                    (this.dialogueSequence >= 19 && this.dialogueSequence <= 21 && !this.unSpriteLoaded) ||
+                    (this.dialogueSequence === 100 && !this.krillSpriteLoaded) ||
+                    (this.dialogueSequence === 200 && !this.krillSpriteLoaded)) {
+                    if (this.dialogue.active) {
+                        console.log(`Dialogue active but sprite not loaded: Krill=${this.krillSpriteLoaded}, Scientist=${this.scientistSpriteLoaded}, Commander=${this.commanderSpriteLoaded}, UN=${this.unSpriteLoaded}`);
+                    }
+                    return;
+                }
+                
+                console.log('Drawing dialogue box...');
+                
+                const boxWidth = 650;
+                const boxHeight = 120;
+                const boxX = (this.canvas.width - boxWidth) / 2;
+                const boxY = this.canvas.height - boxHeight - 20;
+                
+                // Draw dialogue box background
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                this.ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                
+                // Draw dialogue box border
+                this.ctx.strokeStyle = '#4CAF50';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+                
+                // Determine which character to draw
+                const isKrillDialogue = this.dialogueSequence >= 1 && this.dialogueSequence <= 3;
+                const isScientistDialogue = this.dialogueSequence >= 4 && this.dialogueSequence <= 10;
+                const isCelebrationDialogue = this.dialogueSequence >= 11 && this.dialogueSequence <= 12;
+                const isCommanderDialogue = this.dialogueSequence >= 13 && this.dialogueSequence <= 15;
+                const isHighAcidityKrillDialogue = this.dialogueSequence >= 16 && this.dialogueSequence <= 17;
+                const isHighAcidityScientistDialogue = this.dialogueSequence >= 18 && this.dialogueSequence <= 18;
+                const isUNDialogue = this.dialogueSequence >= 19 && this.dialogueSequence <= 21;
+                const isVictoryDefeatDialogue = this.victoryDefeatDialogueActive || this.dialogueSequence === 100 || this.dialogueSequence === 200;
+                
+                if (isKrillDialogue || isCelebrationDialogue || isHighAcidityKrillDialogue || isVictoryDefeatDialogue) {
+                    // Draw Krill expression
+                    this.drawKrillExpression(boxX, boxY, boxWidth, boxHeight);
+                } else if (isScientistDialogue || isHighAcidityScientistDialogue) {
+                    // Draw Scientist
+                    this.drawScientistExpression(boxX, boxY, boxWidth, boxHeight);
+                } else if (isCommanderDialogue) {
+                    // Draw Commander
+                    this.drawCommanderExpression(boxX, boxY, boxWidth, boxHeight);
+                } else if (isUNDialogue) {
+                    // Draw United Nations
+                    this.drawUNExpression(boxX, boxY, boxWidth, boxHeight);
+                }
+                
+                // Draw text
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = 'bold 18px Arial';
+                this.ctx.textAlign = 'left';
+                
+                const textX = boxX + 180; // Increased from 140 to 180 to accommodate larger characters
+                const textY = boxY + 40;
+                const maxTextWidth = boxWidth - 220; // Adjusted from 180 to 220 to account for larger textX
+                
+                // Word wrap the text
+                const words = this.dialogue.text.split(' ');
+                let line = '';
+                let lineY = textY;
+                
+                for (let i = 0; i < words.length; i++) {
+                    const testLine = line + words[i] + ' ';
+                    const metrics = this.ctx.measureText(testLine);
+                    
+                    if (metrics.width > maxTextWidth && i > 0) {
+                        this.ctx.fillText(line, textX, lineY);
+                        line = words[i] + ' ';
+                        lineY += 25;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                this.ctx.fillText(line, textX, lineY);
+                
+                // Draw skip indicator if dialogue can be skipped
+                if (this.dialogue.canSkip) {
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    this.ctx.font = '14px Arial';
+                    this.ctx.textAlign = 'right';
+                    this.ctx.fillText('Press SPACE to continue', boxX + boxWidth - 20, boxY + boxHeight - 10);
+                }
+            }
+            
+            drawKrillExpression(boxX, boxY, boxWidth, boxHeight) {
+                // Calculate Krill expression size - make it larger to peek over the box
+                const krillBaseSize = 140; // Increased from 120 to 140 to match scientist
+                const krillX = boxX + 20;
+                
+                // Calculate source rectangle for the expression
+                const [row, col] = this.dialogue.currentExpression;
+                const srcX = col * this.krillSpriteWidth;
+                const srcY = row * this.krillSpriteHeight;
+                
+                // Calculate display dimensions preserving aspect ratio
+                const aspectRatio = this.krillSpriteWidth / this.krillSpriteHeight;
+                let displayWidth, displayHeight;
+                
+                if (aspectRatio > 1) {
+                    // Wider than tall - use width as base
+                    displayWidth = krillBaseSize;
+                    displayHeight = krillBaseSize / aspectRatio;
+                } else {
+                    // Taller than wide - use height as base
+                    displayHeight = krillBaseSize;
+                    displayWidth = krillBaseSize * aspectRatio;
+                }
+                
+                // Position Krill so he peeks over the top border
+                // The expression should extend above the dialogue box
+                const displayX = krillX;
+                const displayY = boxY - displayHeight * 0.3; // 30% of the expression extends above the box
+                
+                // Draw Krill expression with proper aspect ratio, peeking over the box
+                this.ctx.drawImage(
+                    this.krillSprite,
+                    srcX, srcY, this.krillSpriteWidth, this.krillSpriteHeight,
+                    displayX, displayY, displayWidth, displayHeight
+                );
+            }
+            
+            drawScientistExpression(boxX, boxY, boxWidth, boxHeight) {
+                // Calculate Scientist size - make it larger to peek over the box
+                const scientistBaseSize = 140; // Increased from 120 to 140 for larger scientist
+                const scientistX = boxX + 20;
+                
+                // Calculate display dimensions preserving aspect ratio
+                const aspectRatio = this.scientistSprite.width / this.scientistSprite.height;
+                let displayWidth, displayHeight;
+                
+                if (aspectRatio > 1) {
+                    // Wider than tall - use width as base
+                    displayWidth = scientistBaseSize;
+                    displayHeight = scientistBaseSize / aspectRatio;
+                } else {
+                    // Taller than wide - use height as base
+                    displayHeight = scientistBaseSize;
+                    displayWidth = scientistBaseSize * aspectRatio;
+                }
+                
+                // Position Scientist so she peeks over the top border
+                // The expression should extend above the dialogue box
+                const displayX = scientistX;
+                const displayY = boxY - displayHeight * 0.3; // 30% of the expression extends above the box
+                
+                // Draw Scientist with proper aspect ratio, peeking over the box
+                this.ctx.drawImage(
+                    this.scientistSprite,
+                    0, 0, this.scientistSprite.width, this.scientistSprite.height,
+                    displayX, displayY, displayWidth, displayHeight
+                );
+            }
+            
+            drawCommanderExpression(boxX, boxY, boxWidth, boxHeight) {
+                // Calculate Commander size - make it larger to peek over the box
+                const commanderBaseSize = 140; // Increased from 120 to 140 for larger commander
+                const commanderX = boxX + 20;
+                
+                // Calculate display dimensions preserving aspect ratio
+                const aspectRatio = this.commanderSprite.width / this.commanderSprite.height;
+                let displayWidth, displayHeight;
+                
+                if (aspectRatio > 1) {
+                    // Wider than tall - use width as base
+                    displayWidth = commanderBaseSize;
+                    displayHeight = commanderBaseSize / aspectRatio;
+                } else {
+                    // Taller than wide - use height as base
+                    displayHeight = commanderBaseSize;
+                    displayWidth = commanderBaseSize * aspectRatio;
+                }
+                
+                // Position Commander so he peeks over the top border
+                // The expression should extend above the dialogue box
+                const displayX = commanderX;
+                const displayY = boxY - displayHeight * 0.3; // 30% of the expression extends above the box
+                
+                // Draw Commander with proper aspect ratio, peeking over the box
+                this.ctx.drawImage(
+                    this.commanderSprite,
+                    0, 0, this.commanderSprite.width, this.commanderSprite.height,
+                    displayX, displayY, displayWidth, displayHeight
+                );
+            }
+            
+            drawUNExpression(boxX, boxY, boxWidth, boxHeight) {
+                // Calculate United Nations size - make it larger to peek over the box
+                const unBaseSize = 140; // Increased from 120 to 140 for larger UN
+                const unX = boxX + 20;
+                
+                // Calculate display dimensions preserving aspect ratio
+                const aspectRatio = this.unSprite.width / this.unSprite.height;
+                let displayWidth, displayHeight;
+                
+                if (aspectRatio > 1) {
+                    // Wider than tall - use width as base
+                    displayWidth = unBaseSize;
+                    displayHeight = unBaseSize / aspectRatio;
+                } else {
+                    // Taller than wide - use height as base
+                    displayHeight = unBaseSize;
+                    displayWidth = unBaseSize * aspectRatio;
+                }
+                
+                // Position United Nations so it peeks over the top border
+                // The expression should extend above the dialogue box
+                const displayX = unX;
+                const displayY = boxY - displayHeight * 0.3; // 30% of the expression extends above the box
+                
+                // Draw United Nations with proper aspect ratio, peeking over the box
+                this.ctx.drawImage(
+                    this.unSprite,
+                    0, 0, this.unSprite.width, this.unSprite.height,
+                    displayX, displayY, displayWidth, displayHeight
+                );
+            }
+            
+            updateLivesDisplay() {
+                const livesContainer = document.getElementById('lives');
+                if (livesContainer) {
+                    livesContainer.textContent = this.lives;
+                } else {
+                    console.warn('Lives container not found');
+                }
+            }
+        }
+        
+        // Start the game when page loads
+        console.log('Setting up load event listener...');
+        
+        // Function to create game instance with proper cleanup
+        function createGameInstance() {
+            // Don't create if we're in the middle of a restart
+            if (window.isRestarting) {
+                console.log('Skipping game instance creation - restart in progress');
+                return false;
+            }
+            
+            // Destroy any existing game instance first
+            if (window.gameInstance) {
+                console.log('Destroying existing game instance...');
+                // Stop the game loop
+                if (window.gameInstance.gameRunning !== undefined) {
+                    window.gameInstance.gameRunning = false;
+                    window.gameInstance.gameEnded = true;
+                }
+                // Clear any timers
+                if (window.gameInstance.celebrationDelayTimer) {
+                    clearTimeout(window.gameInstance.celebrationDelayTimer);
+                }
+                if (window.gameInstance.highAcidityDelayTimer) {
+                    clearTimeout(window.gameInstance.highAcidityDelayTimer);
+                }
+                if (window.gameInstance.trashSpawnIncreaseTimer) {
+                    clearInterval(window.gameInstance.trashSpawnIncreaseTimer);
+                }
+                if (window.gameInstance.unInterventionTimer) {
+                    clearTimeout(window.gameInstance.unInterventionTimer);
+                }
+                if (window.gameInstance.victoryDefeatCheckTimer) {
+                    clearTimeout(window.gameInstance.victoryDefeatCheckTimer);
+                }
+                // Remove event listeners
+                const playBtn = document.getElementById('playBtn');
+                const restartBtn = document.getElementById('restartBtn');
+                const resumeBtn = document.getElementById('resumeBtn');
+                if (playBtn) playBtn.replaceWith(playBtn.cloneNode(true));
+                if (restartBtn) restartBtn.replaceWith(restartBtn.cloneNode(true));
+                if (resumeBtn) resumeBtn.replaceWith(resumeBtn.cloneNode(true));
+            }
+            
+            // Create new game instance
+            try {
+                window.gameInstance = new OceanDefender();
+                console.log('New game instance created successfully');
+                return true;
+            } catch (error) {
+                console.error('Error creating game instance:', error);
+                return false;
+            }
+        }
+        
+        // Only create one game instance when the page loads
+        let gameInstanceCreated = false;
+        let isRestarting = false; // Flag to prevent multiple instances during restart
+        
+        window.addEventListener('load', () => {
+            console.log('Load event fired - creating game instance...');
+            if (!gameInstanceCreated && !isRestarting) {
+                gameInstanceCreated = createGameInstance();
+            }
+        });
+        
+        // Fallback: Create game instance when DOM is ready (only if not already created)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('DOMContentLoaded fired - checking for game instance...');
+                if (!gameInstanceCreated && !window.gameInstance && !isRestarting) {
+                    gameInstanceCreated = createGameInstance();
+                }
+            });
+        } else {
+            // DOM is already ready (only if not already created)
+            console.log('DOM already ready - checking for game instance...');
+            if (!gameInstanceCreated && !window.gameInstance && !isRestarting) {
+                gameInstanceCreated = createGameInstance();
+            }
+        }
+        
+        // Mobile detection and UI adjustment
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var playBtn = document.getElementById('playBtn');
+            var mobileNotice = document.getElementById('mobileNotice');
+            if (isMobileDevice()) {
+                if (playBtn) playBtn.style.display = 'none';
+                if (mobileNotice) mobileNotice.style.display = 'block';
+            } else {
+                if (playBtn) playBtn.style.display = 'block';
+                if (mobileNotice) mobileNotice.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
